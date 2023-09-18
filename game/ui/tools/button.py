@@ -1,7 +1,14 @@
 import pygame
 import os
 
+##方形按钮
 class button():
+    ## center:tuple[int,int] 按钮中心  
+    # title_text:str 按钮文字 
+    # title_size:int 文字大小 
+    # size:int 按钮检测大小     为None则自动检测为文字的范围
+    ## font:str 字体    系统字体直接输入字体名，导入字体输入文件路径
+    
     def __init__(self,center,title_text='text',title_size=60,color=(150,150,150),size=None,font=None):
         self.center=center
         self.title_text=title_text

@@ -1,0 +1,4 @@
+[project]
+name = "env_2048"
+version = "0.1.0"
+dependencies = ["gymnasium", "pygame-ce"]

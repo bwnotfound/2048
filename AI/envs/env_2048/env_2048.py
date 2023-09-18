@@ -1,7 +1,11 @@
+from random import randint
+
 import gymnasium as gym
 from gymnasium import spaces
 import pygame
 import numpy as np
+
+from .cython_2048.main import merge_block_list, res_empty_element_list, move_board
 
 
 class Env2048(gym.Env):
@@ -58,28 +62,14 @@ class Env2048(gym.Env):
     def _get_info(self):
         return {}
 
-    def _res_empty_element_list(self):
-        result = []
-        for i in range(self.size):
-            for j in range(self.size):
-                if self._board[i, j] == 0:
-                    result.append((i, j))
-        return result
-
     def _random_add_element(self):
-        res_list = self._res_empty_element_list()
+        res_list = res_empty_element_list(self.size, self._board)
         if len(res_list) == 0:
             return False
-        init_num_pos = res_list[
-            self.np_random.integers(0, len(res_list), size=1, dtype=int)[0]
-        ]
-        self._board[init_num_pos[0], init_num_pos[1]] = self.np_random.integers(
-            self.start_power,
-            self.start_power + self.power_init_range,
-            size=1,
-            dtype=int,
-            endpoint=True,
-        )[0]
+        init_num_pos = res_list[randint(0, len(res_list) - 1)]
+        self._board[init_num_pos[0], init_num_pos[1]] = randint(
+            self.start_power, self.start_power + self.power_init_range
+        )
         return True
 
     def reset(self, seed=None, options=None):
@@ -99,76 +89,11 @@ class Env2048(gym.Env):
 
         return observation, info
 
-    def _merge_block_list(self, block_list):
-        if len(block_list) == 0:
-            return block_list, []
-        result = []
-        reward_list = []
-        i = 0
-        while i < len(block_list):
-            if i == len(block_list) - 1:
-                result.append(block_list[i])
-                break
-            if block_list[i] == block_list[i + 1]:
-                result.append(block_list[i] + 1)
-                reward_list.append(block_list[i] + 1)
-                i += 2
-            else:
-                result.append(block_list[i])
-                i += 1
-        if len(reward_list) > 0:
-            result, returned_reward_list = self._merge_block_list(result)
-            reward_list = reward_list + returned_reward_list
-        return result, reward_list
-
     def step(self, action):
         # Map the action (element of {0,1,2,3}) to the direction we walk in
         direction = self._action_to_direction[action]
-        reward = -1
         self.step_count += 1
-        if direction[0] != 0:
-            d = direction[0]
-            for i in range(self.size):
-                custom_iter = (
-                    range(self.size - 1, -1, -1) if d == 1 else range(self.size)
-                )
-                # 编写2048的核心算法
-                block_list = []
-                for j in custom_iter:
-                    if self._board[i, j] == 0:
-                        continue
-                    block_list.append(self._board[i, j])
-                    self._board[i, j] = 0
-                if len(block_list) == 0:
-                    continue
-                block_list, reward_list = self._merge_block_list(block_list)
-                for r in reward_list:
-                    reward += r
-                for j in range(len(block_list)):
-                    pos = j if d == -1 else self.size - 1 - j
-                    self._board[i, pos] = block_list[j]
-        else:
-            d = direction[1]
-            for i in range(self.size):
-                custom_iter = (
-                    range(self.size - 1, -1, -1) if d == 1 else range(self.size)
-                )
-                # 编写2048的核心算法
-                block_list = []
-                for j in custom_iter:
-                    if self._board[j, i] == 0:
-                        continue
-                    block_list.append(self._board[j, i])
-                    self._board[j, i] = 0
-                if len(block_list) == 0:
-                    continue
-                block_list, reward_list = self._merge_block_list(block_list)
-                for r in reward_list:
-                    reward += r
-                for j in range(len(block_list)):
-                    pos = j if d == -1 else self.size - 1 - j
-                    self._board[pos, i] = block_list[j]
-
+        reward = move_board(direction[0], direction[1], self.size, self._board)
         # An episode is done iff the agent has reached the target
         terminated = (
             not self._random_add_element() or self._board.max() == self.max_power
@@ -179,7 +104,6 @@ class Env2048(gym.Env):
 
         if self.render_mode == "human":
             self._render_frame()
-
         return observation, reward, terminated, truncated, info
 
     def render(self):

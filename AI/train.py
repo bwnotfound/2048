@@ -48,12 +48,12 @@ if __name__ == '__main__':
     )
     cfg.num_states = env.observation_space.shape[0]
     cfg.num_actions = env.action_space.n
-    reload = True
+    reload = False
     agent = Agent(cfg)
     if reload and os.path.exists('./AI/output/agent.pth'):
         checkpoint = torch.load('./AI/output/agent.pth')
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    # new_agent, info = train(cfg, env, agent, save_path='./AI/output/agent.pth')
-    human_run(agent)
+    new_agent, info = train(cfg, env, agent, save_path='./AI/output/agent.pth')
+    # human_run(agent)
     

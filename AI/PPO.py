@@ -29,10 +29,10 @@ class Config:
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.update_freq = 500 * 8  # 更新频率
-        self.actor_hidden_dim = 64  # actor网络的隐藏层维度
-        self.actor_num_heads = 4
-        self.actor_num_layers = 2
-        self.critic_hidden_dim = 64  # critic网络的隐藏层维度
+        self.actor_hidden_dim = 16  # actor网络的隐藏层维度
+        self.actor_num_heads = 2
+        self.actor_num_layers = 4
+        self.critic_hidden_dim = 16  # critic网络的隐藏层维度
         self.critic_num_heads = 4
         self.critic_num_layers = 2
 
@@ -45,48 +45,54 @@ class ActorSoftmax(nn.Module):
         self, input_dim, output_dim, hidden_dim=256, num_heads=4, num_layers=2
     ):
         super().__init__()
-        self.emb = nn.Embedding(input_dim, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim, hidden_dim) * 0.01)
+        self.emb = nn.Embedding(input_dim + 1, hidden_dim)
+        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.01)
         self.transformer = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
-            nn.Linear(hidden_dim, 1),
-            nn.Flatten(),
+            nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(input_dim, output_dim),
+            nn.Linear(hidden_dim, output_dim),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
+        x = x + 1
+        x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
         x = self.transformer(x.permute(1,0,2)).permute(1,0,2)
+        x = x[:, 0, :]
         x = self.postprocess(x)
         probs = F.softmax(x, dim=-1)
         return probs
 
 
 class Critic(nn.Module):
-    def __init__(self, input_dim, hidden_dim=256, num_heads=4, num_layers=2):
+    def __init__(
+        self, input_dim, hidden_dim=256, num_heads=4, num_layers=2
+    ):
         super().__init__()
-        self.emb = nn.Embedding(input_dim, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim, hidden_dim) * 0.01)
+        self.emb = nn.Embedding(input_dim + 1, hidden_dim)
+        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.01)
         self.transformer = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
-            nn.Linear(hidden_dim, 1),
-            nn.Flatten(),
+            nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(input_dim, 1),
+            nn.Linear(hidden_dim, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
+        x = x + 1
+        x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
         x = self.transformer(x.permute(1,0,2)).permute(1,0,2)
-        x = self.postprocess(x)
-        return x.squeeze(-1)
+        x = x[:, 0, :]
+        x = self.postprocess(x).squeeze(-1)
+        return x
 
 
 class PGReplay:

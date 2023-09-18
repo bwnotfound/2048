@@ -160,4 +160,8 @@ cython_debug/
 #.idea/
 
 .vscode
-/AI/output
+/AI/envs/output
+/AI/envs/env_2048/cython_2048/*
+!/AI/envs/env_2048/cython_2048/main.pyx
+!/AI/envs/env_2048/cython_2048/setup.py
+/AI/test.py

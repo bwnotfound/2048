@@ -3,7 +3,7 @@ import sys
 
 import gymnasium as gym
 import torch
-from env_2048 import Env2048
+from envs.env_2048 import Env2048
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from PPO import Agent, Config, train
@@ -48,9 +48,13 @@ if __name__ == '__main__':
     cfg.num_actions = env.action_space.n
     reload = False
     agent = Agent(cfg)
-    if reload and os.path.exists('./AI/output/agent.pth'):
-        checkpoint = torch.load('./AI/output/agent.pth')
+    save_dir = './AI/output'
+    save_path = os.path.join(save_dir, 'agent.pth')
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    if reload and os.path.exists(save_path):
+        checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    new_agent, info = train(cfg, env, agent, save_path='./AI/output/agent.pth')
-    # human_run(agent)
+    # new_agent, info = train(cfg, env, agent, save_path=save_path)
+    human_run(agent)

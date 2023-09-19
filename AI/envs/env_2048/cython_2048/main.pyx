@@ -18,11 +18,6 @@ cpdef tuple merge_block_list(list block_list):
             result.append(block_list[i])
             i += 1
 
-    if len(reward_list) > 0:
-        merged_result, returned_reward_list = merge_block_list(result)
-        reward_list = reward_list + returned_reward_list
-        return merged_result, reward_list
-
     return result, reward_list
 
 @cython.boundscheck(False)  # Deactivate bounds checking

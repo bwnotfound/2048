@@ -23,12 +23,12 @@ class Config:
         self.eval_per_episode = 50  # 评估的频率
 
         self.gamma = 0.95  # 折扣因子
-        self.k_epochs = 10  # 更新策略网络的次数
+        self.k_epochs = 5  # 更新策略网络的次数
         self.actor_lr = 3e-4  # actor网络的学习率
         self.critic_lr = 3e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.update_freq = 500  # 更新频率
+        self.update_freq = 50  # 更新频率
         self.actor_hidden_dim = 16  # actor网络的隐藏层维度
         self.actor_num_heads = 2
         self.actor_num_layers = 4
@@ -181,8 +181,8 @@ class Agent:
 
     def update(self):
         # update policy every n steps
-        if self.sample_count % self.update_freq != 0:
-            return
+        # if self.sample_count % self.update_freq != 0:
+        #     return
         # print("update policy")
         (
             old_states,
@@ -276,10 +276,10 @@ def train(cfg: Config, env, agent: Agent, save_path):
                 (state, action, log_probs, reward, done, value)
             )  # 保存transition
             state = next_state  # 更新下一个状态
-            agent.update()  # 更新智能体
             ep_reward += reward  # 累加奖励
             if done:
                 break
+        agent.update()  # 更新智能体
         if (i_ep + 1) % cfg.eval_per_episode == 0:
             sum_eval_reward = 0
             for _ in range(cfg.eval_eps):

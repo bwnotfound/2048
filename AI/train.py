@@ -46,7 +46,7 @@ if __name__ == '__main__':
     )
     cfg.num_states = env.observation_space.shape[0]
     cfg.num_actions = env.action_space.n
-    reload = False
+    reload = True
     agent = Agent(cfg)
     save_dir = './AI/output'
     save_path = os.path.join(save_dir, 'agent.pth')
@@ -56,5 +56,5 @@ if __name__ == '__main__':
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    # new_agent, info = train(cfg, env, agent, save_path=save_path)
-    human_run(agent)
+    new_agent, info = train(cfg, env, agent, save_path=save_path)
+    # human_run(agent)

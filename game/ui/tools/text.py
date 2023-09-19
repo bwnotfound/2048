@@ -1,17 +1,48 @@
 import pygame
 
-class text():
-    def __init__(self,center,text,color=(255,255,255),size=60,font=None):
-        self.center=center
-        self.text=text
-        self.color=color
-        self.size=size
-        self.font=font
-    def show(self,window:pygame.Surface):
-        text_font=pygame.font.Font(self.font,self.size)
-        text_show=text_font.render(self.text,True,self.color)
-        rect=text_show.get_rect()
-        rect.center=self.center
-        window.blit(text_show,rect)
-    def set_text(self,text:str):
-        self.text=text
+from .common import get_font
+
+
+class Text:
+    def __init__(
+        self,
+        center,
+        text,
+        font_color=(255, 255, 255),
+        font_size=20,
+        font=None,
+        antialias=True,
+    ):
+        self.center = center
+        self.text = text
+        self.font_color = font_color
+        self.font_size = font_size
+        self.font = get_font(font, font_size)
+        self.antialias = antialias
+        self.size = self.font.render(self.text, antialias, self.font_color).get_size()
+        self.rect = pygame.Rect(
+            *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
+        )
+        self.image = pygame.Surface(self.size)
+        self._draw()
+
+    def _draw(self):
+        self.image.fill((0, 0, 0, 0))
+        self.font_image = self.font.render(self.text, self.antialias, self.font_color)
+        self.image.blit(
+            self.font_image,
+            (0, 0),
+        )
+
+    def show(self, window: pygame.Surface):
+        window.blit(self.image, self.rect)
+
+    def set_text(self, text: str):
+        self.text = text
+        self.size = self.font.render(
+            self.text, self.antialias, self.font_color
+        ).get_size()
+        self.rect = pygame.Rect(
+            *[self.center[i] - self.size[i] / 2 for i in range(2)], *self.size
+        )
+        self._draw()

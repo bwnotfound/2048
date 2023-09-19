@@ -1,44 +1,91 @@
-import pygame
 import os
 
+import pygame
+
+from .common import fill_rect, get_font
+
+
 ##方形按钮
-class button():
-    ## center:tuple[int,int] 按钮中心  
-    # title_text:str 按钮文字 
-    # title_size:int 文字大小 
+class Button(pygame.sprite.Sprite):
+    ## center:tuple[int,int] 按钮中心
+    # text:str 按钮文字
+    # title_size:int 文字大小
     # size:int 按钮检测大小     为None则自动检测为文字的范围
     ## font:str 字体    None为默认字体，系统字体直接输入字体名，导入字体输入文件路径
-    
-    def __init__(self,center,title_text='text',title_size=60,color=(150,150,150),size=None,font=None):
-        self.center=center
-        self.title_text=title_text
-        self.title_size=title_size
-        if font==None or font in pygame.font.get_fonts():
-            self.font=pygame.font.SysFont(font,title_size)
-        elif not os.path.exists(font):
-            print(f'font \'{font}\' not exists')
-            self.font=pygame.font.SysFont(None,title_size)
-        else:
-            self.font=pygame.font.Font(font,title_size)    
-        self.color=color
-        if size==None:
-            self.size=self.font.render(self.title_text,True,self.color).get_size()
-        else:
-            self.size=size
-            
-        
-    def show(self,window:pygame.Surface):
-        text_show=self.font.render(self.title_text,True,self.color)
-        rect=text_show.get_rect()
-        rect.center=self.center
-        window.blit(text_show,rect)
-    def onclick(self,mouse_pos):
-        if mouse_pos[0]>self.center[0]-self.size[0]/2 and mouse_pos[0]<self.center[0]+self.size[0]/2 and mouse_pos[1]>self.center[1]-self.size[1]/2 and mouse_pos[1]<self.center[1]+self.size[1]/2:
+
+    def __init__(
+        self,
+        center,
+        text,
+        size=None,
+        font_size=20,
+        font_color=(255, 255, 255),
+        background_color=(50, 50, 50, 100),
+        border_width=2,
+        border_color=(200, 200, 200),
+        border_radius=0,
+        font=None,
+        antialias=True,
+    ):
+        self.center = center
+        self.text = text
+        self.font_size = font_size
+        self.border_width = border_width
+        self.border_radius = border_radius
+        self.antialias = antialias
+        self.font = get_font(font, font_size)
+        self.font_color = pygame.Color(*font_color)
+        self.background_color = pygame.Color(*background_color)
+        self.border_color = pygame.Color(*border_color)
+        if size == None:
+            size = self.font.render(self.text, antialias, self.font_color).get_size()
+        self.size = size
+
+        self.rect = pygame.Rect(
+            *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
+        )
+        self.image = pygame.Surface(self.size)
+        self._draw()
+
+    def _draw(self):
+        fill_rect(
+            self.image,
+            pygame.Rect(0, 0, *self.size),
+            self.background_color,
+            self.border_radius,
+        )
+        pygame.draw.rect(
+            self.image,
+            self.border_color,
+            pygame.Rect(0, 0, self.rect.width, self.rect.height),
+            self.border_width,
+            self.border_radius,
+        )
+        self.font_image = self.font.render(self.text, self.antialias, self.font_color)
+        font_rect = self.font_image.get_rect()
+        self.image.blit(
+            self.font_image,
+            (
+                (self.size[0] - font_rect.width) / 2,
+                (self.size[1] - font_rect.height) / 2,
+            ),
+        )
+        self.image.convert()
+
+    def show(self, window: pygame.Surface):
+        window.blit(self.image, self.rect)
+
+    def onclick(self, mouse_pos):
+        if (
+            mouse_pos[0] > self.center[0] - self.size[0] / 2
+            and mouse_pos[0] < self.center[0] + self.size[0] / 2
+            and mouse_pos[1] > self.center[1] - self.size[1] / 2
+            and mouse_pos[1] < self.center[1] + self.size[1] / 2
+        ):
             return True
         else:
             return False
-    
-    def setTitle(self,title_text:str):
-        self.title_text=title_text
-    def setColor(self,color):
-        self.color=color
+
+    def setText(self, text: str):
+        self.text = text
+        self._draw()

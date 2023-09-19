@@ -1,7 +1,7 @@
 import pygame
 
 #拉链 在一个范围内通过鼠标点击线的相对位置来决定数字大小
-class zipper():
+class Slider():
     def __init__(self,center,size=60,mouse_percent=0.5,data_range=(0,100),font=None):
         self.center=center
         self.size=size

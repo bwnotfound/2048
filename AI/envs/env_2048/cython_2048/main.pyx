@@ -38,7 +38,7 @@ cpdef list res_empty_element_list(int size, int[:, :] board):
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
 cpdef int move_board(int dx, int dy, int size, int[:,:]board):
-    cdef int reward = -1
+    cdef float reward = -2.5
     cdef int block_list_len
     cdef int d, i, j, r
     cdef list block_list
@@ -99,4 +99,4 @@ cpdef int move_board(int dx, int dy, int size, int[:,:]board):
                 else:
                     board[size - 1 - j, i] = block_list[j]
     
-    return reward
+    return int(reward)

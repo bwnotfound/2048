@@ -23,12 +23,12 @@ class Config:
         self.eval_per_episode = 50  # 评估的频率
 
         self.gamma = 0.95  # 折扣因子
-        self.k_epochs = 50  # 更新策略网络的次数
+        self.k_epochs = 10  # 更新策略网络的次数
         self.actor_lr = 3e-4  # actor网络的学习率
         self.critic_lr = 3e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.update_freq = 500 * 8  # 更新频率
+        self.update_freq = 500  # 更新频率
         self.actor_hidden_dim = 16  # actor网络的隐藏层维度
         self.actor_num_heads = 2
         self.actor_num_layers = 4
@@ -46,9 +46,11 @@ class ActorSoftmax(nn.Module):
     ):
         super().__init__()
         self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.01)
+        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.1)
         self.transformer = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads),
+            nn.TransformerEncoderLayer(
+                d_model=hidden_dim, nhead=num_heads, dim_feedforward=hidden_dim * 4
+            ),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
@@ -61,7 +63,7 @@ class ActorSoftmax(nn.Module):
         x = x + 1
         x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
-        x = self.transformer(x.permute(1,0,2)).permute(1,0,2)
+        x = self.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
         x = x[:, 0, :]
         x = self.postprocess(x)
         probs = F.softmax(x, dim=-1)
@@ -69,14 +71,14 @@ class ActorSoftmax(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(
-        self, input_dim, hidden_dim=256, num_heads=4, num_layers=2
-    ):
+    def __init__(self, input_dim, hidden_dim=256, num_heads=4, num_layers=2):
         super().__init__()
         self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.01)
+        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.1)
         self.transformer = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads),
+            nn.TransformerEncoderLayer(
+                d_model=hidden_dim, nhead=num_heads, dim_feedforward=hidden_dim * 4
+            ),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
@@ -89,7 +91,7 @@ class Critic(nn.Module):
         x = x + 1
         x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
-        x = self.transformer(x.permute(1,0,2)).permute(1,0,2)
+        x = self.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
         x = x[:, 0, :]
         x = self.postprocess(x).squeeze(-1)
         return x
@@ -159,7 +161,7 @@ class Agent:
         dist = Categorical(probs)
         action = dist.sample()
         return action.detach().cpu().numpy().item()
-        
+
     def step(self, state):
         self.sample_count += 1
         state = (
@@ -171,7 +173,11 @@ class Agent:
         dist = Categorical(probs)
         action = dist.sample()
         value = self.critic(state)
-        return action.detach().cpu().numpy().item(), dist.log_prob(action).detach(), value.detach()
+        return (
+            action.detach().cpu().item(),
+            dist.log_prob(action).detach(),
+            value.detach(),
+        )
 
     def update(self):
         # update policy every n steps
@@ -196,9 +202,7 @@ class Agent:
         old_log_probs = torch.tensor(
             old_log_probs, device=self.device, dtype=torch.float32
         )
-        old_values = torch.tensor(
-            old_values, device=self.device, dtype=torch.float32
-        )
+        old_values = torch.tensor(old_values, device=self.device, dtype=torch.float32)
         # monte carlo estimate of state rewards
         returns = []
         for i, done in enumerate(old_dones):
@@ -235,8 +239,10 @@ class Agent:
                 + self.entropy_coef * dist.entropy().mean()
             )
             # compute critic loss
-            values = self.critic(old_states)  # detach to avoid backprop through the critic
-            critic_loss = F.mse_loss(returns[mask], values[mask]) 
+            values = self.critic(
+                old_states
+            )  # detach to avoid backprop through the critic
+            critic_loss = F.mse_loss(returns[mask], values[mask])
             # take gradient step
             self.actor_optimizer.zero_grad()
             self.critic_optimizer.zero_grad()
@@ -252,7 +258,7 @@ def train(cfg: Config, env, agent: Agent, save_path):
     print("开始训练！")
     rewards = []  # 记录所有回合的奖励
     steps = []
-    best_ep_reward = 0  # 记录最大回合奖励
+    best_ep_reward = -999999  # 记录最大回合奖励
     output_agent = None
     t_bar = tqdm(total=cfg.train_eps, ncols=120, colour="green")
     for i_ep in range(cfg.train_eps):
@@ -266,7 +272,9 @@ def train(cfg: Config, env, agent: Agent, save_path):
                 action
             )  # 更新环境，返回transition
             done = terminated or truncated
-            agent.memory.push((state, action, log_probs, reward, done, value))  # 保存transition
+            agent.memory.push(
+                (state, action, log_probs, reward, done, value)
+            )  # 保存transition
             state = next_state  # 更新下一个状态
             agent.update()  # 更新智能体
             ep_reward += reward  # 累加奖励

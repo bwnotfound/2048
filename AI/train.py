@@ -5,9 +5,9 @@ import gymnasium as gym
 import torch
 from env_2048 import Env2048
 
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from PPO import Agent, Config, train
+
 
 def human_run(agent: Agent):
     env = gym.make(
@@ -24,15 +24,13 @@ def human_run(agent: Agent):
     rewards = 0
     for step in range(1000):
         action = agent.sample_action(state)
-        state, reward, terminated, truncated, _ = env.step(
-            action
-        )  # 更新环境，返回transition
+        state, reward, terminated, truncated, _ = env.step(action)  # 更新环境，返回transition
         rewards += reward
         done = terminated or truncated
         if done:
             break
-  
-    
+
+
 if __name__ == '__main__':
     cfg = Config()
     cfg.max_steps = 200
@@ -56,4 +54,3 @@ if __name__ == '__main__':
         agent.critic.load_state_dict(checkpoint['critic'])
     new_agent, info = train(cfg, env, agent, save_path='./AI/output/agent.pth')
     # human_run(agent)
-    

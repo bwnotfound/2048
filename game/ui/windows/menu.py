@@ -6,6 +6,7 @@ from ..tools import button
 from ..tools import text
 from ..tools import zipper
 from ..tools import input_box
+from ..tools import need_to_show
 
 def menu(window:pygame.Surface):
     
@@ -24,12 +25,9 @@ def menu(window:pygame.Surface):
     zip_temp=zipper((window_width//2,window_height*11//16))
     input_blank=input_box((window_width//2,window_height*13//16))
     
-    menu_title.show(window)
-    start.show(window)
-    multiplayer.show(window)
-    setting.show(window)
-    zip_temp.show(window)
-    input_blank.show(window)
+    show_list=need_to_show([menu_title,start,multiplayer,setting,zip_temp,input_blank])
+    show_list.show(window)
+    
     last_time=time.time()
     
     pygame.display.flip()
@@ -50,21 +48,9 @@ def menu(window:pygame.Surface):
                     print('setting')
                     pass #运行设置界面
                 elif zip_temp.onclick(mouse_pos):
-                    window.fill((0,0,0))
-                    menu_title.show(window)
-                    start.show(window)
-                    multiplayer.show(window)
-                    setting.show(window)
-                    zip_temp.show(window)
-                    input_blank.show(window)
+                    show_list.update(window)
                 elif input_blank.onclick(mouse_pos):
-                    window.fill((0,0,0))
-                    menu_title.show(window)
-                    start.show(window)
-                    multiplayer.show(window)
-                    setting.show(window)
-                    zip_temp.show(window)
-                    input_blank.show(window)
+                    show_list.update(window)
             elif event.type==pygame.KEYDOWN:
                 if time.time()-last_time>0.15:
                     last_time=time.time()
@@ -78,13 +64,7 @@ def menu(window:pygame.Surface):
                     elif pygame.K_PERIOD==event.key:
                         if input_blank.is_ready()==True:
                             input_blank.add_text('.')
-                    window.fill((0,0,0))
-                    menu_title.show(window)
-                    start.show(window)
-                    multiplayer.show(window)
-                    setting.show(window)
-                    zip_temp.show(window)
-                    input_blank.show(window)
+                    show_list.update(window)
             pygame.display.flip()
 
 

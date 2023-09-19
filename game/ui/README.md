@@ -6,6 +6,7 @@
     2. text: 纯文本               
     3. zipper: 拉链
     4. input_box: 输入栏
+    5. need_to_show: 需要展示的组件的列表 用于让代码看起来简单点
 3. windows: 各种窗口
     1. menu: 主菜单界面
     2. sin_player: 单人模式界面

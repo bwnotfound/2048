@@ -7,7 +7,10 @@ from ..tools import text
 from ..tools import zipper
 from ..tools import input_box
 from ..tools import need_to_show
+from ..tools import chessboard
 
+
+##整个结构可能都会改，menu变为一个传入一个窗口的类，调用menu.show(window)来显示,结构可先参考sing_plager.py
 def menu(window:pygame.Surface):
     
     window_width =  1280
@@ -21,11 +24,20 @@ def menu(window:pygame.Surface):
     multiplayer=button((window_width//2,window_height*7//16),'multiplayer',150)
     setting=button((window_width//2,window_height*9//16),'Settings',150)
     
-    
+    ## 测试代码
+    chess=chessboard((200,200),(400,400))
+    data=[
+        [2,3,4,8],
+        [2,0,2,16],
+        [32,64,128,256],
+        [512,1024,2048,4096]
+    ]
+    chess.update(data)
     zip_temp=zipper((window_width//2,window_height*11//16))
     input_blank=input_box((window_width//2,window_height*13//16))
+    ## 测试代码结束后面循环中也要改
     
-    show_list=need_to_show([menu_title,start,multiplayer,setting,zip_temp,input_blank])
+    show_list=need_to_show([menu_title,start,multiplayer,setting,zip_temp,input_blank,chess])
     show_list.show(window)
     
     last_time=time.time()

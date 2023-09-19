@@ -166,3 +166,4 @@ cython_debug/
 !/AI/envs/env_2048/cython_2048/main.pyx
 !/AI/envs/env_2048/cython_2048/setup.py
 /AI/test.py
+/temp.py

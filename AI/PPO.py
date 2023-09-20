@@ -23,45 +23,53 @@ class Config:
         self.eval_per_episode = 50  # 评估的频率
 
         self.gamma = 0.95  # 折扣因子
-        self.k_epochs = 5  # 更新策略网络的次数
+        self.k_epochs = 25  # 更新策略网络的次数
         self.actor_lr = 3e-4  # actor网络的学习率
-        self.critic_lr = 3e-4  # critic网络的学习率
+        self.critic_lr = 1e-3  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.update_freq = 50  # 更新频率
-        self.actor_hidden_dim = 16  # actor网络的隐藏层维度
-        self.actor_num_heads = 2
+        self.actor_hidden_dim = 64  # actor网络的隐藏层维度
+        self.actor_num_heads = 4
         self.actor_num_layers = 4
-        self.critic_hidden_dim = 16  # critic网络的隐藏层维度
+        self.critic_hidden_dim = 64  # critic网络的隐藏层维度
         self.critic_num_heads = 4
-        self.critic_num_layers = 2
+        self.critic_num_layers = 4
 
         self.num_actions = 4
         self.num_states = None
+        self.size = None
 
 
 class ActorSoftmax(nn.Module):
     def __init__(
-        self, input_dim, output_dim, hidden_dim=256, num_heads=4, num_layers=2
+        self,
+        input_dim,
+        output_dim,
+        input_len,
+        hidden_dim=256,
+        num_heads=4,
+        num_layers=2,
     ):
         super().__init__()
         self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.1)
+        self.pos_emb = nn.Parameter(torch.randn(input_len + 1, hidden_dim) * 0.1)
         self.transformer = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
-                d_model=hidden_dim, nhead=num_heads, dim_feedforward=hidden_dim * 4
+                d_model=hidden_dim,
+                nhead=num_heads,
+                dim_feedforward=hidden_dim * 4,
+                dropout=0.0,
             ),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
             nn.Linear(hidden_dim, output_dim),
         )
 
     def forward(self, x: torch.Tensor):
         x = x + 1
-        x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
+        x = torch.cat([x.new_zeros((x.shape[0], 1), dtype=torch.long), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
         x = self.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
         x = x[:, 0, :]
@@ -71,25 +79,26 @@ class ActorSoftmax(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, input_dim, hidden_dim=256, num_heads=4, num_layers=2):
+    def __init__(self, input_dim, input_len, hidden_dim=256, num_heads=4, num_layers=2):
         super().__init__()
         self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-        self.pos_emb = nn.Parameter(torch.randn(input_dim + 1, hidden_dim) * 0.1)
+        self.pos_emb = nn.Parameter(torch.randn(input_len + 1, hidden_dim) * 0.1)
         self.transformer = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
-                d_model=hidden_dim, nhead=num_heads, dim_feedforward=hidden_dim * 4
+                d_model=hidden_dim,
+                nhead=num_heads,
+                dim_feedforward=hidden_dim * 4,
+                dropout=0.0,
             ),
             num_layers=num_layers,
         )
         self.postprocess = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
             nn.Linear(hidden_dim, 1),
         )
 
     def forward(self, x: torch.Tensor):
         x = x + 1
-        x = torch.cat([x.new_zeros((x.shape[0], 1)), x], dim=-1)
+        x = torch.cat([x.new_zeros((x.shape[0], 1), dtype=torch.long), x], dim=-1)
         x = self.emb(x) + self.pos_emb.unsqueeze(0)
         x = self.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
         x = x[:, 0, :]
@@ -127,12 +136,14 @@ class Agent:
         self.actor = ActorSoftmax(
             cfg.num_states,
             cfg.num_actions,
+            cfg.size**2,
             hidden_dim=cfg.actor_hidden_dim,
             num_heads=cfg.actor_num_heads,
             num_layers=cfg.actor_num_layers,
         ).to(self.device)
         self.critic = Critic(
             cfg.num_states,
+            cfg.size**2,
             hidden_dim=cfg.critic_hidden_dim,
             num_heads=cfg.critic_num_heads,
             num_layers=cfg.critic_num_layers,
@@ -172,11 +183,9 @@ class Agent:
         probs = self.actor(state)
         dist = Categorical(probs)
         action = dist.sample()
-        value = self.critic(state)
         return (
             action.detach().cpu().item(),
             dist.log_prob(action).detach(),
-            value.detach(),
         )
 
     def update(self):
@@ -190,19 +199,18 @@ class Agent:
             old_log_probs,
             old_rewards,
             old_dones,
-            old_values,
         ) = self.memory.sample()
         # convert to tensor
         old_states = torch.tensor(
             np.array(old_states), device=self.device, dtype=torch.long
         )
+        old_values = self.critic(old_states).detach()
         old_actions = torch.tensor(
             np.array(old_actions), device=self.device, dtype=torch.float32
         )
         old_log_probs = torch.tensor(
             old_log_probs, device=self.device, dtype=torch.float32
         )
-        old_values = torch.tensor(old_values, device=self.device, dtype=torch.float32)
         # monte carlo estimate of state rewards
         returns = []
         for i, done in enumerate(old_dones):
@@ -236,7 +244,7 @@ class Agent:
             # compute actor loss
             actor_loss = (
                 -torch.min(surr1, surr2)[mask].mean()
-                + self.entropy_coef * dist.entropy().mean()
+                # + self.entropy_coef * dist.entropy().mean()
             )
             # compute critic loss
             values = self.critic(
@@ -245,10 +253,10 @@ class Agent:
             critic_loss = F.mse_loss(returns[mask], values[mask])
             # take gradient step
             self.actor_optimizer.zero_grad()
-            self.critic_optimizer.zero_grad()
             actor_loss.backward()
-            critic_loss.backward()
             self.actor_optimizer.step()
+            self.critic_optimizer.zero_grad()
+            critic_loss.backward()
             self.critic_optimizer.step()
         self.memory.clear()
 
@@ -267,13 +275,13 @@ def train(cfg: Config, env, agent: Agent, save_path):
         state, info = env.reset()  # 重置环境，返回初始状态
         for _ in range(cfg.max_steps):
             ep_step += 1
-            action, log_probs, value = agent.step(state)  # 选择动作
+            action, log_probs = agent.step(state)  # 选择动作
             next_state, reward, terminated, truncated, _ = env.step(
                 action
             )  # 更新环境，返回transition
             done = terminated or truncated
             agent.memory.push(
-                (state, action, log_probs, reward, done, value)
+                (state, action, log_probs, reward, done)
             )  # 保存transition
             state = next_state  # 更新下一个状态
             ep_reward += reward  # 累加奖励

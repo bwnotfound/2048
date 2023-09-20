@@ -35,18 +35,22 @@ if __name__ == '__main__':
     cfg = Config()
     cfg.max_steps = 200
     cfg.update_freq = cfg.max_steps
+    max_power=10
+    start_power=1
+    size = 4
     env = gym.make(
         cfg.env_name,
-        size=4,
+        size=size,
         render_fps=9999,
         max_episode_steps=cfg.max_steps,
-        max_power=10,
-        start_power=1,
+        max_power=max_power,
+        start_power=start_power,
         power_init_range=0,
     )
-    cfg.num_states = env.observation_space.shape[0]
+    cfg.size = size
+    cfg.num_states = max_power
     cfg.num_actions = env.action_space.n
-    reload = True
+    reload = False
     agent = Agent(cfg)
     save_dir = './AI/output'
     save_path = os.path.join(save_dir, 'agent.pth')

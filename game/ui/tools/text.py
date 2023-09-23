@@ -9,10 +9,10 @@ class Text:
         center,
         text,
         font_color=(255, 255, 255),
-        font_size=20,
+        font_size=60,
         font=None,
         antialias=True,
-        background_color=(0,0,0)
+        background_color=(0,0,0,0)
     ):
         self.center = center
         self.text = text

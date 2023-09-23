@@ -20,9 +20,9 @@ class Button(pygame.sprite.Sprite):
         size=None,
         font_size=60,
         font_color=(255, 255, 255),
-        background_color=(50, 50, 50, 100),
+        background_color=None,
         border_width=2,
-        border_color=(200, 200, 200),
+        border_color=None,
         border_radius=0,
         font=None,
         antialias=True,
@@ -35,9 +35,15 @@ class Button(pygame.sprite.Sprite):
         self.antialias = antialias
         self.font = get_font(font, font_size)
         self.font_color = pygame.Color(*font_color)
-        self.background_color = pygame.Color(*background_color)
-        self.border_color = pygame.Color(*border_color)
-        if size == None:
+        if background_color is None:
+            self.background_color = pygame.Color((0, 0, 0, 0))
+        else:
+            self.background_color = pygame.Color(*background_color)
+        if border_color is None:
+            self.border_color = (0, 0, 0, 0)
+        else:
+            self.border_color = pygame.Color(*border_color)
+        if size is None:
             size = self.font.render(self.text, antialias, self.font_color).get_size()
         self.size = size
 

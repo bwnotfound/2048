@@ -15,6 +15,8 @@ def get_font(font, font_size=20):
 def fill_rect(surface: pygame.Surface, rect, color, border_radius):
     if isinstance(rect, tuple):
         rect = pygame.Rect(0, 0, *rect)
+    surface.convert_alpha()
+    surface.fill(pygame.Color(0,0,0,0), rect=rect)
     pygame.draw.circle(
         surface,
         color,

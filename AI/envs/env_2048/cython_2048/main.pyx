@@ -97,6 +97,6 @@ cpdef int move_board(int dx, int dy, int size, int[:,:]board):
     cdef float ratio = empty_num / (size * size)
     ratio = ratio + 1
     for r in reward_list:
-        reward += r * ratio
+        reward += 1.5 ** r * ratio
     
     return int(reward)

@@ -19,17 +19,17 @@ class Config:
         self.device = "cuda"  # device to use
         self.train_eps = 1000000  # 训练的回合数
         self.test_eps = 20  # 测试的回合数
-        self.max_steps = 500  # 每个回合的最大步数
+        self.max_steps = 1000  # 每个回合的最大步数
         self.eval_eps = 30  # 评估的回合数
-        self.eval_per_episode = 500  # 评估的频率
-        self.batch_size = 2048
+        self.eval_per_episode = 1000  # 评估的频率
+        self.batch_size = 8192
         self.mini_batch_size = 256
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 10  # 更新策略网络的次数
-        self.actor_lr = 2e-4  # actor网络的学习率
-        self.critic_lr = 2e-4  # critic网络的学习率
+        self.actor_lr = 1e-4  # actor网络的学习率
+        self.critic_lr = 1e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.update_freq = 50  # 更新频率
@@ -42,70 +42,50 @@ class Config:
 
         self.num_actions = 4
         self.num_states = None
-        self.size = None
-
+def init_weight(m):
+    if type(m) == nn.Linear:
+        nn.init.orthogonal_(m.weight)
+        nn.init.zeros_(m.bias)
 
 class A2CBase(nn.Module):
     def __init__(
         self,
         input_dim,
-        input_len,
         hidden_dim=256,
         num_heads=4,
         num_layers=2,
     ):
         super().__init__()
-        # self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-        # self.pos_emb = nn.Parameter(torch.randn(input_len + 1, hidden_dim) * 0.1)
-        # self.transformer = nn.TransformerEncoder(
-        #     nn.TransformerEncoderLayer(
-        #         d_model=hidden_dim,
-        #         nhead=num_heads,
-        #         dim_feedforward=hidden_dim * 4,
-        #         dropout=0.0,
-        #     ),
-        #     num_layers=num_layers,
-        # )
         self.net = nn.Sequential(
-            nn.Linear(input_len, hidden_dim),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(
-                    d_model=hidden_dim,
-                    nhead=num_heads,
-                    dim_feedforward=hidden_dim * 4,
-                    dropout=0.0,
-                ),
-                num_layers=num_layers,
-            ),
-            
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            # nn.TransformerEncoder(
+            #     nn.TransformerEncoderLayer(
+            #         d_model=hidden_dim,
+            #         nhead=num_heads,
+            #         dim_feedforward=hidden_dim * 4,
+            #         dropout=0.0,
+            #     ),
+            #     num_layers=num_layers,
+            # ),
         )
+        self.net.apply(init_weight)
 
     def forward(self, x: torch.Tensor):
-        # x = x + 1
-        # x = torch.cat([x.new_zeros((x.shape[0], 1), dtype=torch.long), x], dim=-1)
-        # x = self.emb(x) + self.pos_emb.unsqueeze(0)
-        # x = self.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
-        # x = x[:, 0, :]
-        x = self.net(x.float())
+        x = self.net(x)
         return x
 
 
 class ActorSoftmax(A2CBase):
     def __init__(
-        self,
-        input_dim,
-        output_dim,
-        input_len,
-        hidden_dim=256,
-        num_heads=4,
-        num_layers=2,
+        self, input_dim, output_dim, hidden_dim=256, num_heads=4, num_layers=2
     ):
         super().__init__(
             input_dim,
-            input_len,
             hidden_dim=hidden_dim,
             num_heads=num_heads,
             num_layers=num_layers,
@@ -113,6 +93,7 @@ class ActorSoftmax(A2CBase):
         self.postprocess = nn.Sequential(
             nn.Linear(hidden_dim, output_dim),
         )
+        self.postprocess.apply(init_weight)
 
     def forward(self, x: torch.Tensor):
         x = super().forward(x)
@@ -122,10 +103,9 @@ class ActorSoftmax(A2CBase):
 
 
 class Critic(A2CBase):
-    def __init__(self, input_dim, input_len, hidden_dim=256, num_heads=4, num_layers=2):
+    def __init__(self, input_dim, hidden_dim=256, num_heads=4, num_layers=2):
         super().__init__(
             input_dim,
-            input_len,
             hidden_dim=hidden_dim,
             num_heads=num_heads,
             num_layers=num_layers,
@@ -133,6 +113,7 @@ class Critic(A2CBase):
         self.postprocess = nn.Sequential(
             nn.Linear(hidden_dim, 1),
         )
+        self.postprocess.apply(init_weight)
 
     def forward(self, x: torch.Tensor):
         x = super().forward(x)
@@ -172,14 +153,12 @@ class Agent:
         self.actor = ActorSoftmax(
             cfg.num_states,
             cfg.num_actions,
-            cfg.size**2,
             hidden_dim=cfg.actor_hidden_dim,
             num_heads=cfg.actor_num_heads,
             num_layers=cfg.actor_num_layers,
         ).to(self.device)
         self.critic = Critic(
             cfg.num_states,
-            cfg.size**2,
             hidden_dim=cfg.critic_hidden_dim,
             num_heads=cfg.critic_num_heads,
             num_layers=cfg.critic_num_layers,
@@ -203,7 +182,7 @@ class Agent:
     @torch.no_grad()
     def sample_action(self, state):
         state = (
-            torch.tensor(state, device=self.device, dtype=torch.long)
+            torch.tensor(state, device=self.device, dtype=torch.float32)
             .unsqueeze(dim=0)
             .to(self.device)
         )
@@ -213,18 +192,18 @@ class Agent:
         return action.detach().cpu().numpy().item()
 
     def step(self, state):
-        self.sample_count += 1
-        state = (
-            torch.tensor(state, device=self.device, dtype=torch.long)
-            .unsqueeze(dim=0)
-            .to(self.device)
+        state = torch.tensor(state, device=self.device, dtype=torch.float32).to(
+            self.device
         )
+        if len(state.shape) == 1:
+            state.unsqueeze_(0)
+        self.sample_count += 1
         probs = self.actor(state)
         dist = Categorical(probs)
         action = dist.sample()
         return (
-            action.detach().cpu().item(),
-            dist.log_prob(action).detach(),
+            action.detach().cpu().numpy(),
+            dist.log_prob(action).detach().cpu().numpy(),
         )
 
     def update(self):
@@ -242,10 +221,10 @@ class Agent:
         self.memory.clear()
         # convert to tensor
         old_states = torch.tensor(
-            np.array(old_states), device=self.device, dtype=torch.long
+            np.array(old_states), device=self.device, dtype=torch.float32
         )
         old_next_states = torch.tensor(
-            np.array(old_next_states), device=self.device, dtype=torch.long
+            np.array(old_next_states), device=self.device, dtype=torch.float32
         )
 
         old_actions = torch.tensor(
@@ -347,38 +326,69 @@ class RewardScaling:
         self.R = np.zeros(self.shape)
 
 
-def train(cfg: Config, env, agent: Agent, save_path):
+def train(cfg: Config, parallel_env, agent: Agent, save_path):
     '''训练'''
     print("开始训练！")
-    rewards = []  # 记录所有回合的奖励
-    steps = []
     best_ep_reward = -999999  # 记录最大回合奖励
     output_agent = None
     t_bar = tqdm(total=cfg.train_eps, ncols=120, colour="green")
-    reward_scaling = RewardScaling(shape=1, gamma=cfg.gamma)
+    reward_scalings = [RewardScaling(shape=1, gamma=cfg.gamma) for _ in range(len(parallel_env.envs))]
     for i_ep in range(cfg.train_eps):
-        ep_reward = 0  # 记录一回合内的奖励
-        ep_step = 0
-        state, info = env.reset()  # 重置环境，返回初始状态
-        reward_scaling.reset()
+        ep_reward = [0 for _ in range(len(parallel_env.envs))]  # 记录一回合内的奖励
+        ep_step = [0 for _ in range(len(parallel_env.envs))] 
+        states, infos, indices = parallel_env.reset()  # 重置环境，返回初始状态
+        for reward_scaling in reward_scalings:
+            reward_scaling.reset()
+        store_states, store_actions, store_log_probs, store_rewards, store_next_states, store_dws, store_dones = (
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+            [[] for _ in range(states.shape[0])],
+        )
         for i in range(cfg.max_steps):
-            ep_step += 1
-            action, log_probs = agent.step(state)  # 选择动作
-            next_state, reward, terminated, truncated, _ = env.step(
-                action
+            actions, log_probs = agent.step(states)  # 选择动作
+            next_states, rewards, dones, _, next_indices, pop_ids = parallel_env.step(
+                actions
             )  # 更新环境，返回transition
-            done = terminated or truncated
-            dw = done and i != cfg.max_steps - 1
-            reward = reward_scaling(reward).item()
-            agent.memory.push(
-                (state, action, log_probs, reward, next_state, dw, done)
-            )  # 保存transition
-            agent.update()  # 更新智能体
-            state = next_state  # 更新下一个状态
-            ep_reward += reward  # 累加奖励
-            if done:
+            if next_states.shape[0] == 0:
                 break
-        if (i_ep + 1) % cfg.eval_per_episode == 0:
+            if len(pop_ids) > 0:
+                pass
+            for k, j in enumerate(indices):
+                store_states[j].append(states[k])
+                store_actions[j].append(actions[k])
+                store_log_probs[j].append(log_probs[k])
+                reward = rewards[k]
+                ep_reward[j] += reward  # 累加奖励
+                reward = reward_scalings[j](reward).item()
+                store_rewards[j].append(reward)
+                store_next_states[j].append(next_states[k])
+                store_dws[j].append(dones[k] and i != cfg.max_steps - 1)
+                store_dones[j].append(dones[k])
+                ep_step[j] += 1
+            states = next_states  # 更新下一个状态
+            leave_ids = [j for j in range(len(indices)) if j not in pop_ids]
+            states = states[leave_ids]
+            indices = next_indices
+        for i in range(len(parallel_env.envs)):
+            for j in range(len(store_states[i])):
+                agent.memory.push(
+                    (
+                        store_states[i][j],
+                        store_actions[i][j],
+                        store_log_probs[i][j],
+                        store_rewards[i][j],
+                        store_next_states[i][j],
+                        store_dws[i][j],
+                        store_dones[i][j],
+                    )
+                )
+        agent.update()  # 更新智能体
+        if (i_ep + 1) % (cfg.eval_per_episode // len(parallel_env.envs)) == 0:
+            env = parallel_env.envs[0]
             sum_eval_reward = 0
             for _ in range(cfg.eval_eps):
                 eval_ep_reward = 0
@@ -399,7 +409,7 @@ def train(cfg: Config, env, agent: Agent, save_path):
                 best_ep_reward = mean_eval_reward
                 output_agent = deepcopy(agent)
                 tqdm.write(
-                    f"回合：{i_ep+1}/{cfg.train_eps}，奖励：{ep_reward:.2f}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}，更新模型！"
+                    f"回合：{i_ep+1}/{cfg.train_eps}，奖励：{ep_reward[0]:.2f}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}，更新模型！"
                 )
                 torch.save(
                     {
@@ -410,12 +420,12 @@ def train(cfg: Config, env, agent: Agent, save_path):
                 )
             else:
                 tqdm.write(
-                    f"回合：{i_ep+1}/{cfg.train_eps}，奖励：{ep_reward:.2f}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}"
+                    f"回合：{i_ep+1}/{cfg.train_eps}，奖励：{ep_reward[0]:.2f}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}"
                 )
-        steps.append(ep_step)
-        rewards.append(ep_reward)
+        ep_reward = np.mean(ep_reward).item()
+        ep_step = np.mean(ep_step).item()
         t_bar.set_postfix(reward=ep_reward, step=ep_step)
-        t_bar.update()
+        t_bar.update(len(parallel_env.envs))
     print("完成训练！")
-    env.close()
-    return output_agent, {'rewards': rewards}
+    # env.close()
+    return output_agent

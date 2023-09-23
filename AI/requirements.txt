@@ -6,3 +6,4 @@ torch
 gymnasium
 tqdm
 cython
+# gymnasium[box2d]

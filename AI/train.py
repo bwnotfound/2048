@@ -7,19 +7,21 @@ from envs.env_2048 import Env2048
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from PPO import Agent, Config, train
+from common import ParallelEnviroment
 
 
 def human_run(agent: Agent):
     env = gym.make(
         cfg.env_name,
         size=4,
-        render_fps=5,
+        render_fps=20,
         max_episode_steps=1000,
         max_power=10,
         start_power=1,
         power_init_range=0,
         render_mode="human",
     )
+    # env = gym.make('LunarLander-v2', render_mode="human",)
     state, info = env.reset()
     rewards = 0
     for step in range(1000):
@@ -33,24 +35,27 @@ def human_run(agent: Agent):
 
 if __name__ == '__main__':
     cfg = Config()
-    cfg.max_steps = 512
+    cfg.max_steps = 1000
     cfg.update_freq = cfg.max_steps
-    max_power=10
-    start_power=1
+    max_power = 10
+    start_power = 1
     size = 4
-    env = gym.make(
-        cfg.env_name,
-        size=size,
-        render_fps=9999,
-        max_episode_steps=cfg.max_steps,
-        max_power=max_power,
-        start_power=start_power,
-        power_init_range=0,
+
+    env = ParallelEnviroment(
+        gym.make(
+            cfg.env_name,
+            size=size,
+            render_fps=9999,
+            max_episode_steps=cfg.max_steps,
+            max_power=max_power,
+            start_power=start_power,
+            power_init_range=0,
+        ),
+        32,
     )
-    env = Env2048(size=size, max_power=max_power, start_power=start_power)
-    cfg.size = size
-    cfg.num_states = max_power
-    cfg.num_actions = env.action_space.n
+    # env = ParallelEnviroment(gym.make('LunarLander-v2'), 8)
+    cfg.num_states = env.num_states
+    cfg.num_actions = env.num_actions
     reload = True
     agent = Agent(cfg)
     save_dir = './AI/output'

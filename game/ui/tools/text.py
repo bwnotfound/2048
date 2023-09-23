@@ -12,6 +12,7 @@ class Text:
         font_size=20,
         font=None,
         antialias=True,
+        bgc=(0,0,0)
     ):
         self.center = center
         self.text = text
@@ -21,13 +22,14 @@ class Text:
         self.antialias = antialias
         self.size = self.font.render(self.text, antialias, self.font_color).get_size()
         self.rect = pygame.Rect(
-            *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
+            *[center[i] - self.size[i] // 2 for i in range(2)], *self.size
         )
         self.image = pygame.Surface(self.size)
+        self.bgc=bgc
         self._draw()
 
     def _draw(self):
-        self.image.fill((0, 0, 0, 0))
+        self.image.fill(self.bgc)
         self.font_image = self.font.render(self.text, self.antialias, self.font_color)
         self.image.blit(
             self.font_image,
@@ -43,6 +45,6 @@ class Text:
             self.text, self.antialias, self.font_color
         ).get_size()
         self.rect = pygame.Rect(
-            *[self.center[i] - self.size[i] / 2 for i in range(2)], *self.size
+            *[self.center[i] - self.size[i] // 2 for i in range(2)], *self.size
         )
         self._draw()

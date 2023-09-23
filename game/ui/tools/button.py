@@ -18,7 +18,7 @@ class Button(pygame.sprite.Sprite):
         center,
         text,
         size=None,
-        font_size=20,
+        font_size=60,
         font_color=(255, 255, 255),
         background_color=(50, 50, 50, 100),
         border_width=2,
@@ -66,8 +66,8 @@ class Button(pygame.sprite.Sprite):
         self.image.blit(
             self.font_image,
             (
-                (self.size[0] - font_rect.width) / 2,
-                (self.size[1] - font_rect.height) / 2,
+                (self.size[0] - font_rect.width) // 2,
+                (self.size[1] - font_rect.height) // 2,
             ),
         )
         self.image.convert()
@@ -77,10 +77,10 @@ class Button(pygame.sprite.Sprite):
 
     def onclick(self, mouse_pos):
         if (
-            mouse_pos[0] > self.center[0] - self.size[0] / 2
-            and mouse_pos[0] < self.center[0] + self.size[0] / 2
-            and mouse_pos[1] > self.center[1] - self.size[1] / 2
-            and mouse_pos[1] < self.center[1] + self.size[1] / 2
+            mouse_pos[0] > self.center[0] - self.size[0] // 2
+            and mouse_pos[0] < self.center[0] + self.size[0] // 2
+            and mouse_pos[1] > self.center[1] - self.size[1] // 2
+            and mouse_pos[1] < self.center[1] + self.size[1] // 2
         ):
             return True
         else:

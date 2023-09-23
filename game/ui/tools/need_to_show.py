@@ -10,9 +10,9 @@ class Need_to_show():
             if hasattr(part,'show'):
                 part.show(window)
     
-    def update(self,window:pygame.Surface,bg_img=None,bgc=(0,0,0)):
+    def update(self,window:pygame.Surface,bg_img=None,background_color=(0,0,0)):
         if bg_img==None:
-            window.fill(bgc)
+            window.fill(background_color)
         else:
             window.blit(bg_img,(0,0))
         for part in self.show_list:

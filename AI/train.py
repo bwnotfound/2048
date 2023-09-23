@@ -33,7 +33,7 @@ def human_run(agent: Agent):
 
 if __name__ == '__main__':
     cfg = Config()
-    cfg.max_steps = 200
+    cfg.max_steps = 512
     cfg.update_freq = cfg.max_steps
     max_power=10
     start_power=1
@@ -47,10 +47,11 @@ if __name__ == '__main__':
         start_power=start_power,
         power_init_range=0,
     )
+    env = Env2048(size=size, max_power=max_power, start_power=start_power)
     cfg.size = size
     cfg.num_states = max_power
     cfg.num_actions = env.action_space.n
-    reload = False
+    reload = True
     agent = Agent(cfg)
     save_dir = './AI/output'
     save_path = os.path.join(save_dir, 'agent.pth')
@@ -60,5 +61,5 @@ if __name__ == '__main__':
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    new_agent, info = train(cfg, env, agent, save_path=save_path)
-    # human_run(agent)
+    # new_agent, info = train(cfg, env, agent, save_path=save_path)
+    human_run(agent)

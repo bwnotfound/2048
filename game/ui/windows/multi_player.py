@@ -6,7 +6,7 @@ window_width=1280##之后丢config.json里
 window_height=720
 class multi_player():
     
-    def __init__(self,bg_img=None,bgc=(0,0,0)):
+    def __init__(self,bg_img=None,background_color=(0,0,0)):
         if bg_img!=None:
             if not os.path.exists(bg_img):
                 print(f'img {bg_img} not exists')
@@ -15,7 +15,7 @@ class multi_player():
                 self.bg_img=pygame.transform.scale(image,(window_width,window_height))
         else:
             self.bg_img=None
-        self.bgc=bgc
+        self.background_color=background_color
         
         self.score=0
         self.step=0
@@ -31,7 +31,7 @@ class multi_player():
         if self.bg_img!=None:
             window.blit(self.bg_img,(0,0))
         else:        
-            window.fill(self.bgc)
+            window.fill(self.background_color)
         score_str='score'+str(self.score)
         score_text=Text((window_width*3//5,window_height//18),score_str)
         step_str='step'+str(self.step)

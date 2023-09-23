@@ -9,14 +9,14 @@ class Chessboard():
         self.center=center
         self.size=size
         self.row_num=row_num
-        self.bgc=background_color
+        self.background_color=background_color
         self.data=[[0 for _ in range(row_num)] for _ in range(row_num)]
         self.img=img
 
     def _show_part(self,center,value,width,height,window):
         rect=pygame.Rect(center[0]-width//2,center[1]-height//2,width,height)
         color=color_dict[value]
-        show_text=Text(center,str(value),font_size=int((width+height)//6),bgc=color_dict[value],font_color=(0,0,0))
+        show_text=Text(center,str(value),font_size=int((width+height)//6),background_color=color_dict[value],font_color=(0,0,0))
         pygame.draw.rect(window,color,rect)
         if value!=0:
             show_text.show(window)
@@ -31,7 +31,7 @@ class Chessboard():
                 scaled_img=pygame.transform.scale(image,(rect.width,rect.height))
                 window.blit(scaled_img,rect.topleft)
         else:        
-            pygame.draw.rect(window,self.bgc,rect)
+            pygame.draw.rect(window,self.background_color,rect)
         for i in range(self.row_num):
             for j in range(self.row_num):
                 if self.data[i][j] in color_dict.keys():

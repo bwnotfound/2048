@@ -44,7 +44,7 @@ class Button(pygame.sprite.Sprite):
         self.rect = pygame.Rect(
             *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
         )
-        self.image = pygame.Surface(self.size)
+        self.image = pygame.Surface(self.size).convert_alpha()
         self._draw()
 
     def _draw(self):

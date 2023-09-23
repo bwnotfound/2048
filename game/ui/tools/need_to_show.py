@@ -1,7 +1,7 @@
 
 import pygame
 
-class need_to_show():
+class Need_to_show():
     def __init__(self,show_list:list):
         self.show_list=show_list
     
@@ -10,11 +10,15 @@ class need_to_show():
             if hasattr(part,'show'):
                 part.show(window)
     
-    def update(self,window:pygame.Surface):
-        window.fill((0,0,0))
+    def update(self,window:pygame.Surface,bg_img=None,bgc=(0,0,0)):
+        if bg_img==None:
+            window.fill(bgc)
+        else:
+            window.blit(bg_img,(0,0))
         for part in self.show_list:
             if hasattr(part,'show'):
                 part.show(window)
+        pygame.display.flip()
 
     def add_compo(self,compo):
         self.show_list.append(compo)

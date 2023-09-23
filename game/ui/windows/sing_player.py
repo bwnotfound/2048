@@ -1,5 +1,5 @@
 import pygame
-from ..tools import text,need_to_show,button,chessboard
+from ..tools import Text,Need_to_show,Button,Chessboard
 
 window_width=1280##之后丢config.json里
 window_height=720
@@ -15,16 +15,18 @@ class sing_player():
         
     def show(self,window):
         score_str='score'+str(self.score)
-        score_text=text((window_width//4,window_height//8),score_str)
+        score_text=Text((window_width//4,window_height//8),score_str,)
         step_str='step'+str(self.step)
-        step_text=text((window_width*3//4,window_height//8),step_str)
-        chess=chessboard((window_width//3,window_height*5//8),(window_height*3//4,window_height*3//4),len(self.data))
+        step_text=Text((window_width*3//4,window_height//8),step_str)
+        # chess=Chessboard((window_width//2,window_height//2),(window_width,window_height))
+        chess=Chessboard((window_width//3,window_height*5//8),(window_height*3//4,window_height*3//4),len(self.data),img='game\\ui\\src\\img\\chessboard_bg.jpg')
+        chess.update(self.data)
         ##道具还没写
-        ai_str='AI提示'
-        ai_button=button((window_width*15//16,window_height*14//16),ai_str)
-        exit_str='退出'
-        exit_button=button((window_width*15//16,window_height*15//16),exit_str)
-        show_list=need_to_show([score_text,step_text,chess,ai_button,exit_button])
+        ai_str='AI_clue'
+        ai_button=Button((window_width*14//16,window_height*14//16),ai_str,size=(200,50))
+        exit_str='exit'
+        exit_button=Button((window_width*14//16,window_height*15//16),exit_str,size=(200,50),background_color=(255,255,255,0.1))
+        show_list=Need_to_show([score_text,step_text,chess,ai_button,exit_button])
         show_list.update(window)
         
     def update(self,data,score,step,item_list=[],item_pos=[]):
@@ -48,7 +50,6 @@ def main():
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     sing_player_page.update(data,100,200)
     sing_player_page.show(window)
-    pygame.display.flip()
     while(True):
         
         for event in pygame.event.get():

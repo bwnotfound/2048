@@ -8,8 +8,8 @@ from ..tools import Button
 from ..tools import Text
 from ..tools import Slider
 from ..tools import InputBox
-from ..tools import need_to_show
-from ..tools import chessboard
+from ..tools import Need_to_show
+from ..tools import Chessboard
 
 
 def menu(window: pygame.Surface):
@@ -37,7 +37,7 @@ def menu(window: pygame.Surface):
     multiplayer = Button(
         (window_width // 2, window_height * 8 // 16),
         'multiplayer',
-        size=(500, 120),
+        size=(500, 121),
         border_radius=10,
         font_size=100,
         font='arial',
@@ -54,13 +54,13 @@ def menu(window: pygame.Surface):
     zip_temp = Slider((window_width // 2, window_height * 14 // 16))
     input_blank = InputBox((window_width // 2, window_height * 15 // 16))
 
-    show_list = need_to_show(
+    show_list = Need_to_show(
         [menu_title, start, multiplayer, setting, zip_temp, input_blank]
     )
     show_list.show(window)
     
     ## 测试代码
-    chess=chessboard((200,200),(400,400))
+    chess=Chessboard((200,200),(400,400))
     data=[
         [2,3,4,8],
         [2,0,2,16],

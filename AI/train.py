@@ -16,6 +16,7 @@ def human_run(agent: Agent):
         size=4,
         render_fps=20,
         max_episode_steps=1000,
+        max_steps=1000,
         max_power=10,
         start_power=1,
         power_init_range=0,
@@ -47,6 +48,7 @@ if __name__ == '__main__':
             size=size,
             render_fps=9999,
             max_episode_steps=cfg.max_steps,
+            max_steps=cfg.max_steps,
             max_power=max_power,
             start_power=start_power,
             power_init_range=0,
@@ -66,5 +68,5 @@ if __name__ == '__main__':
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    # new_agent, info = train(cfg, env, agent, save_path=save_path)
-    human_run(agent)
+    new_agent, info = train(cfg, env, agent, save_path=save_path)
+    # human_run(agent)

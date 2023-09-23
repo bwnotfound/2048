@@ -16,7 +16,7 @@ class Env2048(gym.Env):
         render_mode=None,
         size=6,
         render_fps=10,
-        max_episode_steps=200,
+        max_steps=200,
         max_power=10,
         start_power=1,
         power_init_range=0,
@@ -28,7 +28,7 @@ class Env2048(gym.Env):
         assert start_power >= 1 and start_power + power_init_range <= max_power
         self.start_power = start_power
         self.power_init_range = power_init_range
-        self.max_episode_steps = max_episode_steps
+        self.max_episode_steps = max_steps
 
         self.observation_space = spaces.Box(0, max_power, shape=(size**2,), dtype=int)
 

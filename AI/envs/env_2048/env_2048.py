@@ -28,7 +28,7 @@ class Env2048(gym.Env):
         assert start_power >= 1 and start_power + power_init_range <= max_power
         self.start_power = start_power
         self.power_init_range = power_init_range
-        self.max_episode_steps = max_steps
+        self.max_steps = max_steps
 
         self.observation_space = spaces.Box(0, max_power, shape=(size**2,), dtype=int)
 
@@ -98,7 +98,7 @@ class Env2048(gym.Env):
         terminated = (
             not self._random_add_element() or self._board.max() == self.max_power
         )
-        truncated = self.step_count >= self.max_episode_steps
+        truncated = self.max_steps is not None and self.step_count >= self.max_steps
         observation = self._get_obs()
         info = self._get_info()
 

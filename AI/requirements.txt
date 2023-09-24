@@ -6,4 +6,5 @@ torch
 gymnasium
 tqdm
 cython
+tensorboard
 # gymnasium[box2d]

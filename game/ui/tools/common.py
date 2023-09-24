@@ -2,6 +2,7 @@ import os
 
 import pygame
 
+
 def get_font(font, font_size=20):
     if font == None or font in pygame.font.get_fonts():
         font = pygame.font.SysFont(font, font_size)
@@ -12,11 +13,12 @@ def get_font(font, font_size=20):
         font = pygame.font.SysFont(None, font_size)
     return font
 
+
 def fill_rect(surface: pygame.Surface, rect, color, border_radius):
     if isinstance(rect, tuple):
         rect = pygame.Rect(0, 0, *rect)
     surface.convert_alpha()
-    surface.fill(pygame.Color(0,0,0,0), rect=rect)
+    surface.fill(pygame.Color(0, 0, 0, 0), rect=rect)
     pygame.draw.circle(
         surface,
         color,

@@ -12,7 +12,7 @@ class InputBox(pygame.sprite.Sprite):
         self.text = ''
         self.underline = '_'
         self.ready = False
-        
+
     def show(self, window: pygame.Surface):
         text_font = pygame.font.Font(self.font, self.size)
         if self.text != '':

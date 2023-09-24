@@ -54,7 +54,6 @@ class multi_player:
         )
         show_list = Need_to_show([score_text, step_text, chess, exit_button])
 
-
         another_score_str = 'score: ' + str(self.another_score)
         another_score_text = Text(
             (window_width * 4 // 5, window_height * 1 // 27), another_score_str
@@ -75,7 +74,7 @@ class multi_player:
         another_exit_button = Button(
             (window_width * 4 // 5, window_height * 8 // 27),
             exit_str,
-            border_color=(100,100,100,100),
+            border_color=(100, 100, 100, 100),
             border_radius=20,
         )
         show_list = Need_to_show(

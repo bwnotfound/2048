@@ -12,7 +12,7 @@ class Text:
         font_size=60,
         font=None,
         antialias=True,
-        background_color=(0,0,0,0)
+        background_color=(0, 0, 0, 0),
     ):
         self.center = center
         self.text = text
@@ -25,7 +25,7 @@ class Text:
             *[center[i] - self.size[i] // 2 for i in range(2)], *self.size
         )
         self.image = pygame.Surface(self.size).convert_alpha()
-        self.background_color=background_color
+        self.background_color = background_color
         self._draw()
 
     def _draw(self):

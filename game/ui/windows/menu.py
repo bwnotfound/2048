@@ -58,15 +58,10 @@ def menu(window: pygame.Surface):
         [menu_title, start, multiplayer, setting, zip_temp, input_blank]
     )
     show_list.show(window)
-    
+
     ## 测试代码
-    chess=Chessboard((200,200),(400,400))
-    data=[
-        [2,3,4,8],
-        [2,0,2,16],
-        [32,64,128,256],
-        [512,1024,2048,4096]
-    ]
+    chess = Chessboard((200, 200), (400, 400))
+    data = [[2, 3, 4, 8], [2, 0, 2, 16], [32, 64, 128, 256], [512, 1024, 2048, 4096]]
     chess.update(data)
 
     last_time = time.time()

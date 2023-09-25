@@ -28,48 +28,21 @@ class Config:
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
-        self.k_epochs = 10  # 更新策略网络的次数
-        self.actor_lr = 3e-4  # actor网络的学习率
-        self.critic_lr = 3e-4  # critic网络的学习率
+        self.k_epochs = 20  # 更新策略网络的次数
+        self.actor_lr = 1e-3  # actor网络的学习率
+        self.critic_lr = 1e-3  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.actor_hidden_dim = 256  # actor网络的隐藏层维度
-        self.actor_num_heads = 4
-        self.actor_num_layers = 3
-        self.critic_hidden_dim = 256  # critic网络的隐藏层维度
-        self.critic_num_heads = 4
-        self.critic_num_layers = 3
+        self.actor_hidden_dim = 32  # actor网络的隐藏层维度
+        self.actor_num_heads = 2
+        self.actor_num_layers = 2
+        self.critic_hidden_dim = 32  # critic网络的隐藏层维度
+        self.critic_num_heads = 2
+        self.critic_num_layers = 2
 
         self.num_actions = None
         self.num_states = None
         self.input_dim = None
-
-
-class A2CBase(nn.Module):
-    def __init__(
-        self,
-        input_dim,
-        input_len,
-        hidden_dim=256,
-        num_heads=4,
-        num_layers=2,
-    ):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_len, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.Tanh(),
-        )
-
-    def forward(self, x: torch.Tensor):
-        return self.net(x)
 
 
 # class A2CBase(nn.Module):
@@ -82,36 +55,63 @@ class A2CBase(nn.Module):
 #         num_layers=2,
 #     ):
 #         super().__init__()
-#         self.emb = nn.Embedding(input_dim + 2, hidden_dim)
-#         self.pos_emb = nn.Parameter(torch.randn(1, input_len + 1, hidden_dim) * 0.1)
-#         self.encoder = nn.TransformerEncoder(
-#             nn.TransformerEncoderLayer(
-#                 d_model=hidden_dim,
-#                 nhead=num_heads,
-#                 dim_feedforward=hidden_dim * 4,
-#                 dropout=0.0,
-#             ),
-#             num_layers=num_layers,
-#         )
-#         self.next_net = nn.Sequential(
+#         self.net = nn.Sequential(
+#             nn.Linear(input_len, hidden_dim),
+#             nn.ReLU(),
+#             nn.Linear(hidden_dim, hidden_dim),
+#             nn.ReLU(),
+#             nn.Linear(hidden_dim, hidden_dim),
+#             nn.ReLU(),
+#             nn.Linear(hidden_dim, hidden_dim),
+#             nn.ReLU(),
 #             nn.Linear(hidden_dim, hidden_dim),
 #             nn.Tanh(),
 #         )
 
 #     def forward(self, x: torch.Tensor):
-#         x = x.long() + 1
-#         x = torch.cat(
-#             [
-#                 torch.zeros(x.shape[0], 1, dtype=torch.long, device=x.device),
-#                 x,
-#             ],
-#             dim=1,
-#         )
-#         x = self.emb(x) + self.pos_emb
-#         x = self.encoder(x.permute(1, 0, 2)).permute(1, 0, 2)
-#         x = x[:, 0, :]
-#         x = self.next_net(x)
-#         return x
+#         return self.net(x)
+
+
+class A2CBase(nn.Module):
+    def __init__(
+        self,
+        input_dim,
+        input_len,
+        hidden_dim=256,
+        num_heads=4,
+        num_layers=2,
+    ):
+        super().__init__()
+        self.emb = nn.Embedding(input_dim + 2, hidden_dim)
+        self.pos_emb = nn.Parameter(torch.randn(1, input_len + 1, hidden_dim) * 0.1)
+        self.encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=hidden_dim,
+                nhead=num_heads,
+                dim_feedforward=hidden_dim * 4,
+                dropout=0.0,
+            ),
+            num_layers=num_layers,
+        )
+        self.next_net = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+        )
+
+    def forward(self, x: torch.Tensor):
+        x = x.long() + 1
+        x = torch.cat(
+            [
+                torch.zeros(x.shape[0], 1, dtype=torch.long, device=x.device),
+                x,
+            ],
+            dim=1,
+        )
+        x = self.emb(x) + self.pos_emb
+        x = self.encoder(x.permute(1, 0, 2)).permute(1, 0, 2)
+        x = x[:, 0, :]
+        x = self.next_net(x)
+        return x
 
 
 class ActorSoftmax(A2CBase):
@@ -335,6 +335,10 @@ class Agent:
                 critic_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 0.5)
                 self.critic_optimizer.step()
+            ratio = ratio.detach().cpu().numpy()
+            edge_ratio = (self.eps_clip - np.abs(ratio - 1)) < 0.01
+            edge_ratio = np.sum(edge_ratio).item() / np.prod(edge_ratio.shape)
+            t_bar.set_postfix_str("edge ratio: {:.2f}".format(edge_ratio))
             t_bar.update()
         t_bar.close()
 
@@ -384,10 +388,11 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
     best_ep_reward = -999999  # 记录最大回合奖励
     output_agent = None
     t_bar = tqdm(total=cfg.train_eps, ncols=120, colour="green")
+    t_bar.update(last_epoch)
     reward_scalings = [
         RewardScaling(shape=1, gamma=cfg.gamma) for _ in range(len(parallel_env.envs))
     ]
-    for i_ep in range(last_epoch + 1, cfg.train_eps, len(parallel_env.envs)):
+    for i_ep in range(last_epoch, cfg.train_eps, len(parallel_env.envs)):
         ep_reward = [0 for _ in range(len(parallel_env.envs))]  # 记录一回合内的奖励
         ep_step = [0 for _ in range(len(parallel_env.envs))]
         states, infos, indices = parallel_env.reset()  # 重置环境，返回初始状态
@@ -490,7 +495,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                         "actor_optimizer": agent.actor_optimizer.state_dict(),
                         "critic": agent.critic.state_dict(),
                         "critic_optimizer": agent.critic_optimizer.state_dict(),
-                        "epoch": i_ep,
+                        "epoch": i_ep + len(parallel_env.envs),
                     },
                     os.path.join(save_dir, "agent.pth"),
                 )

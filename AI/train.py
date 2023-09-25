@@ -27,7 +27,9 @@ def human_run(agent: Agent):
     rewards = 0
     for step in range(1000):
         action = agent.sample_action(state)
-        state, reward, terminated, truncated, _ = env.step(action.item())  # 更新环境，返回transition
+        state, reward, terminated, truncated, _ = env.step(
+            action.item()
+        )  # 更新环境，返回transition
         rewards += reward
         done = terminated or truncated
         if done:
@@ -36,12 +38,11 @@ def human_run(agent: Agent):
 
 if __name__ == '__main__':
     cfg = Config()
-    cfg.max_steps = 2 ** 13 + 20
+    cfg.max_steps = 2**13 + 20
     max_power = 14
     start_power = 1
     size = 4
     cfg.input_dim = max_power
-    
 
     env = ParallelEnviroment(
         gym.make(
@@ -65,9 +66,17 @@ if __name__ == '__main__':
     save_path = os.path.join(save_dir, 'agent.pth')
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    last_epoch = 0
     if reload and os.path.exists(save_path):
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-    new_agent, info = train(cfg, env, agent, save_dir=save_dir)
+        actor_optimizer_state = checkpoint.get('actor_optimizer', None)
+        critic_optimizer_state = checkpoint.get('critic_optimizer', None)
+        if actor_optimizer_state is not None:
+            agent.actor_optimizer.load_state_dict(actor_optimizer_state)
+        if critic_optimizer_state is not None:
+            agent.critic_optimizer.load_state_dict(critic_optimizer_state)
+        last_epoch = checkpoint.get('epoch', 0)
+    new_agent, info = train(cfg, env, agent, save_dir=save_dir, last_epoch=last_epoch)
     # human_run(agent)

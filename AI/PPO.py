@@ -24,19 +24,19 @@ class Config:
         self.eval_eps = 512  # 评估的回合数
         self.eval_per_episode = 2000  # 评估的频率
         self.batch_size = 65536
-        self.mini_batch_size = 1024
+        self.mini_batch_size = 2048
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 10  # 更新策略网络的次数
-        self.actor_lr = 1e-4  # actor网络的学习率
-        self.critic_lr = 1e-4  # critic网络的学习率
+        self.actor_lr = 3e-4  # actor网络的学习率
+        self.critic_lr = 3e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.actor_hidden_dim = 128  # actor网络的隐藏层维度
+        self.actor_hidden_dim = 256  # actor网络的隐藏层维度
         self.actor_num_heads = 4
         self.actor_num_layers = 3
-        self.critic_hidden_dim = 128  # critic网络的隐藏层维度
+        self.critic_hidden_dim = 256  # critic网络的隐藏层维度
         self.critic_num_heads = 4
         self.critic_num_layers = 3
 
@@ -82,8 +82,8 @@ class A2CBase(nn.Module):
 #         num_layers=2,
 #     ):
 #         super().__init__()
-#         self.emb = nn.Embedding(input_dim + 1, hidden_dim)
-#         self.pos_emb = nn.Parameter(torch.zeros(1, input_len + 1, hidden_dim))
+#         self.emb = nn.Embedding(input_dim + 2, hidden_dim)
+#         self.pos_emb = nn.Parameter(torch.randn(1, input_len + 1, hidden_dim) * 0.1)
 #         self.encoder = nn.TransformerEncoder(
 #             nn.TransformerEncoderLayer(
 #                 d_model=hidden_dim,
@@ -99,6 +99,7 @@ class A2CBase(nn.Module):
 #         )
 
 #     def forward(self, x: torch.Tensor):
+#         x = x.long() + 1
 #         x = torch.cat(
 #             [
 #                 torch.zeros(x.shape[0], 1, dtype=torch.long, device=x.device),
@@ -276,8 +277,20 @@ class Agent:
         advantages = []
         # monte carlo estimate of state rewards
         with torch.no_grad():
-            old_values = self.critic(old_states).detach()
-            old_next_values = self.critic(old_next_states).detach()
+            old_values = torch.cat(
+                [
+                    self.critic(tensor).detach()
+                    for tensor in old_states.split(self.mini_batch_size)
+                ],
+                dim=0,
+            )
+            old_next_values = torch.cat(
+                [
+                    self.critic(tensor).detach()
+                    for tensor in old_next_states.split(self.mini_batch_size)
+                ],
+                dim=0,
+            )
             deltas = (
                 old_rewards + self.gamma * old_next_values * (1.0 - old_dw) - old_values
             )
@@ -487,10 +500,8 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                 )
         ep_reward = np.mean(ep_reward).item()
         ep_step = np.mean(ep_step).item()
-        writer.add_scalar(
-            "Train/ep_reward", ep_reward, (i_ep + 1) * len(parallel_env.envs)
-        )
-        writer.add_scalar("Train/ep_step", ep_step, (i_ep + 1) * len(parallel_env.envs))
+        writer.add_scalar("Train/ep_reward", ep_reward, i_ep)
+        writer.add_scalar("Train/ep_step", ep_step, i_ep)
         t_bar.set_postfix(reward=ep_reward, step=ep_step)
         t_bar.update(len(parallel_env.envs))
     print("完成训练！")

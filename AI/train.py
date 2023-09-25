@@ -66,6 +66,7 @@ if __name__ == '__main__':
     save_path = os.path.join(save_dir, 'agent.pth')
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    last_epoch = 0
     if reload and os.path.exists(save_path):
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])

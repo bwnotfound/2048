@@ -226,8 +226,7 @@ class Agent:
         if len(state.shape) == 1:
             state.unsqueeze_(0)
         probs = self.actor(state)
-        dist = Categorical(probs)
-        action = dist.sample()
+        action = probs.argmax(dim=-1)
         return action.detach().cpu().numpy()
 
     @torch.no_grad()

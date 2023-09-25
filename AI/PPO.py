@@ -23,14 +23,14 @@ class Config:
         self.max_steps = 1000  # 每个回合的最大步数
         self.eval_eps = 512  # 评估的回合数
         self.eval_per_episode = 2000  # 评估的频率
-        self.batch_size = 32768
-        self.mini_batch_size = 512
+        self.batch_size = 65536
+        self.mini_batch_size = 1024
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 10  # 更新策略网络的次数
-        self.actor_lr = 1e-5  # actor网络的学习率
-        self.critic_lr = 1e-5  # critic网络的学习率
+        self.actor_lr = 1e-4  # actor网络的学习率
+        self.critic_lr = 1e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.actor_hidden_dim = 128  # actor网络的隐藏层维度
@@ -364,7 +364,7 @@ class RewardScaling:
         self.R = np.zeros(self.shape)
 
 
-def train(cfg: Config, parallel_env, agent: Agent, save_dir):
+def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
     '''训练'''
     print("开始训练！")
     writer = SummaryWriter(save_dir)
@@ -374,7 +374,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir):
     reward_scalings = [
         RewardScaling(shape=1, gamma=cfg.gamma) for _ in range(len(parallel_env.envs))
     ]
-    for i_ep in range(cfg.train_eps):
+    for i_ep in range(last_epoch + 1, cfg.train_eps, len(parallel_env.envs)):
         ep_reward = [0 for _ in range(len(parallel_env.envs))]  # 记录一回合内的奖励
         ep_step = [0 for _ in range(len(parallel_env.envs))]
         states, infos, indices = parallel_env.reset()  # 重置环境，返回初始状态
@@ -434,7 +434,9 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir):
                     )
                 )
         agent.update()  # 更新智能体
-        if (i_ep + 1) % (cfg.eval_per_episode // len(parallel_env.envs)) == 0:
+        if (i_ep // len(parallel_env.envs)) % (
+            cfg.eval_per_episode // len(parallel_env.envs)
+        ) == 0:
             sum_eval_reward = 0
             eval_reward_step = 0
             for _ in range(0, cfg.eval_eps, len(parallel_env.envs)):
@@ -467,22 +469,27 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir):
                 best_ep_reward = mean_eval_reward
                 output_agent = deepcopy(agent)
                 tqdm.write(
-                    f"回合：{(i_ep+1) * len(parallel_env.envs)}/{cfg.train_eps}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}，更新模型！"
+                    f"回合：{i_ep}/{cfg.train_eps}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}，更新模型！"
                 )
                 torch.save(
                     {
                         "actor": agent.actor.state_dict(),
+                        "actor_optimizer": agent.actor_optimizer.state_dict(),
                         "critic": agent.critic.state_dict(),
+                        "critic_optimizer": agent.critic_optimizer.state_dict(),
+                        "epoch": i_ep,
                     },
                     os.path.join(save_dir, "agent.pth"),
                 )
             else:
                 tqdm.write(
-                    f"回合：{(i_ep+1) * len(parallel_env.envs)}/{cfg.train_eps}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}"
+                    f"回合：{i_ep}/{cfg.train_eps}，评估奖励：{mean_eval_reward:.2f}，最佳评估奖励：{best_ep_reward:.2f}"
                 )
         ep_reward = np.mean(ep_reward).item()
         ep_step = np.mean(ep_step).item()
-        writer.add_scalar("Train/ep_reward", ep_reward, (i_ep + 1) * len(parallel_env.envs))
+        writer.add_scalar(
+            "Train/ep_reward", ep_reward, (i_ep + 1) * len(parallel_env.envs)
+        )
         writer.add_scalar("Train/ep_step", ep_step, (i_ep + 1) * len(parallel_env.envs))
         t_bar.set_postfix(reward=ep_reward, step=ep_step)
         t_bar.update(len(parallel_env.envs))

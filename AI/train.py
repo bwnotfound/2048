@@ -71,12 +71,6 @@ if __name__ == '__main__':
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-        actor_optimizer_state = checkpoint.get('actor_optimizer', None)
-        critic_optimizer_state = checkpoint.get('critic_optimizer', None)
-        if actor_optimizer_state is not None:
-            agent.actor_optimizer.load_state_dict(actor_optimizer_state)
-        if critic_optimizer_state is not None:
-            agent.critic_optimizer.load_state_dict(critic_optimizer_state)
         last_epoch = checkpoint.get('epoch', 0)
     new_agent, info = train(cfg, env, agent, save_dir=save_dir, last_epoch=last_epoch)
     # human_run(agent)

@@ -492,9 +492,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                 torch.save(
                     {
                         "actor": agent.actor.state_dict(),
-                        "actor_optimizer": agent.actor_optimizer.state_dict(),
                         "critic": agent.critic.state_dict(),
-                        "critic_optimizer": agent.critic_optimizer.state_dict(),
                         "epoch": i_ep + len(parallel_env.envs),
                     },
                     os.path.join(save_dir, "agent.pth"),

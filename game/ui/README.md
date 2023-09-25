@@ -1,14 +1,18 @@
 ### 文件结构
 1. src:各种资源文件，如font,img,voice
 2. tools：各种用于ui交互的工具
-    2023.9.19:我在menu界面将目前的四个tools展示了一遍，在根目录from game.ui.windows.menu import main后执行main()可查看执行效果(mone)
     1. Button:按钮                 
     2. text: 纯文本               
     3. Slider: 拉链
     4. InputBox: 输入栏
-    5. need_to_show: 需要展示的组件的列表 用于让代码看起来简单点
+    5. component_collection: 需要展示/点击的组件的列表 用于让代码看起来简单点
+    6. common:其他工具公用的工具
+    7. chessboard: 棋盘
+    
 3. windows: 各种窗口
     1. menu: 主菜单界面
     2. sin_player: 单人模式界面
     3. multi_player: 多人模式界面
     4. setting: 设置界面
+
+# 每个窗口中都有一个main函数是用于测试的，不是主体逻辑，后面都会删.主体逻辑预计放在game的main下 2023/9/25 mone

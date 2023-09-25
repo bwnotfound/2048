@@ -1,108 +1,88 @@
 import random
 import time
+import os
 
 import pygame
 from pygame.sprite import RenderPlain
 
-from ..tools import Button
-from ..tools import Text
-from ..tools import Slider
-from ..tools import InputBox
-from ..tools import Need_to_show
-from ..tools import Chessboard
+from ..tools import Button, Text, Slider, InputBox, Comp_Collection, Chessboard
 
 
-def menu(window: pygame.Surface):
-    window_width = 1280
-    window_height = 720
+class Menu:
+    def __init__(
+        self,
+        window_width=1280,
+        window_height=720,
+        background_img=None,
+        background_color=(0, 0, 0),
+    ):
+        r = random.randrange(75, 150)
+        g = random.randrange(125, 200)
+        b = random.randrange(100, 175)
+        self.menu_title = Text(
+            (window_width // 2, window_height // 8),
+            '2048',
+            font_color=(r, g, b),
+            font_size=window_width // 10,
+            font='game\\ui\\src\\font\\Milky Mania.ttf',
+        )
+        self.start = Button(
+            (window_width // 2, window_height * 5 // 16),
+            'start',
+            font_color=(
+                r + random.randint(10, 50),
+                g + random.randint(20, 50),
+                b + random.randint(20, 50),
+            ),
+            font_size=100,
+            font='game\\ui\\src\\font\\Milky Mania.ttf',
+        )
+        self.multiplayer = Button(
+            (window_width // 2, window_height * 8 // 16),
+            'multiplayer',
+            font_color=(
+                r + random.randint(10, 50),
+                g + random.randint(20, 50),
+                b + random.randint(20, 50),
+            ),
+            font_size=100,
+            font='game\\ui\\src\\font\\Milky Mania.ttf',
+        )
+        self.setting = Button(
+            (window_width // 2, window_height * 11 // 16),
+            'setting',
+            font_color=(
+                r + random.randint(10, 50),
+                g + random.randint(20, 50),
+                b + random.randint(20, 50),
+            ),
+            font_size=100,
+            font='game\\ui\\src\\font\\Milky Mania.ttf',
+        )
+        self.show_list = Comp_Collection(
+            [self.menu_title, self.start, self.multiplayer, self.setting]
+        )
+        if background_img != None:
+            if not os.path.exists(background_img):
+                print(f'img {background_img} not exists')
+            else:
+                image = pygame.image.load(background_img)
+                self.background_img = pygame.transform.scale(
+                    image, (window_width, window_height)
+                )
+        else:
+            self.background_img = None
+        self.background_color = background_color
 
-    r = random.randrange(100, 255)
-    g = random.randrange(100, 255)
-    b = random.randrange(100, 255)
-    menu_title = Text(
-        (window_width // 2, window_height // 8),
-        '2048',
-        font_color=(r, g, b),
-        font_size=window_width // 10,
-        font='game\\ui\\src\\font\\Milky Mania.ttf',
-    )
-    start = Button(
-        (window_width // 2, window_height * 5 // 16),
-        'start',
-        size=(500, 120),
-        border_radius=10,
-        font_size=100,
-        font='arial',
-    )
-    multiplayer = Button(
-        (window_width // 2, window_height * 8 // 16),
-        'multiplayer',
-        size=(500, 121),
-        border_radius=10,
-        font_size=100,
-        font='arial',
-    )
-    setting = Button(
-        (window_width // 2, window_height * 11 // 16),
-        'Settings',
-        size=(500, 120),
-        border_radius=10,
-        font_size=100,
-        font='arial',
-    )
+    def show(self, window: pygame.Surface):
+        self.show_list.update(window, self.background_img)
 
-    zip_temp = Slider((window_width // 2, window_height * 14 // 16))
-    input_blank = InputBox((window_width // 2, window_height * 15 // 16))
+    ## 返回被点击的所有组件对应的字符串的列表
+    def onclick(self):
+        mouse_pos = pygame.mouse.get_pos()
+        return [part.get_text() for part in self.show_list.onclick(mouse_pos)]
 
-    show_list = Need_to_show(
-        [menu_title, start, multiplayer, setting, zip_temp, input_blank]
-    )
-    show_list.show(window)
-
-    ## 测试代码
-    chess = Chessboard((200, 200), (400, 400))
-    data = [[2, 3, 4, 8], [2, 0, 2, 16], [32, 64, 128, 256], [512, 1024, 2048, 4096]]
-    chess.update(data)
-
-    last_time = time.time()
-
-    pygame.display.flip()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                if start.onclick(mouse_pos):
-                    print('start')
-                    pass  # 运行单人游戏界面
-                elif multiplayer.onclick(mouse_pos):
-                    print('multi')
-                    pass  # 运行多人游戏界面
-                elif setting.onclick(mouse_pos):
-                    print('setting')
-                    pass  # 运行设置界面
-                elif zip_temp.onclick(mouse_pos):
-                    show_list.update(window)
-                elif input_blank.onclick(mouse_pos):
-                    show_list.update(window)
-            elif event.type == pygame.KEYDOWN:
-                if time.time() - last_time > 0.15:
-                    last_time = time.time()
-                    ## 当时是限制输入的是ip地址（只有数字和'.'）随缘修改
-                    if event.key == pygame.K_BACKSPACE:
-                        if input_blank.is_ready() == True:
-                            input_blank.del_text()
-                    elif pygame.K_0 <= event.key <= pygame.K_9:
-                        if input_blank.is_ready() == True:
-                            input_blank.add_text(str(event.key - pygame.K_0))
-                    elif pygame.K_PERIOD == event.key:
-                        if input_blank.is_ready() == True:
-                            input_blank.add_text('.')
-                    show_list.update(window)
-            pygame.display.flip()
-
+    
 
 def main():
     window_width = 1280
@@ -111,10 +91,22 @@ def main():
     window = pygame.display.set_mode((window_width, window_height))
     pygame.init()
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
+    menu_page = Menu(background_img='game\\ui\\src\\img\\menu_bg.jpg')
+    menu_page.show(window)
     while True:
-        menu(window)
-        window.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                onclick_list = menu_page.onclick()
+                if 'start' in onclick_list:
+                    print('start')
+                    pass  # 运行单人游戏界面
+                elif 'multiplayer' in onclick_list:
+                    print('multi')
+                    pass  # 运行多人游戏界面
+                elif 'setting' in onclick_list:
+                    print('setting')
+                    pass  # 运行设置界面
+            menu_page.show(window)

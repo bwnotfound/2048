@@ -29,13 +29,17 @@ class multi_player:
         self.another_step = 0
         self.another_data = [[0 for _ in range(4)] for _ in range(4)]
         self.another_pos_item_num = {'del_one_blank': 0, 'double_one_blank': 0, 'c': 0}
-        
-        exit_str='surrender'
+
+        exit_str = 'surrender'
         score_str = 'score: ' + str(self.score)
-        self.score_text=Text((window_width * 1 // 5, window_height * 19 // 27), score_str)
-        
+        self.score_text = Text(
+            (window_width * 1 // 5, window_height * 19 // 27), score_str
+        )
+
         step_str = 'step: ' + str(self.step)
-        self.step_text = Text((window_width * 1 // 5, window_height * 21 // 27), step_str)
+        self.step_text = Text(
+            (window_width * 1 // 5, window_height * 21 // 27), step_str
+        )
         self.chess = Chessboard(
             (window_width // 5, window_height // 3),
             (window_width * 9 // 25, window_height * 17 // 27),
@@ -87,21 +91,21 @@ class multi_player:
             window.fill(self.background_color)
         ##道具还没写
         self.show_list.update(window, background_img=self.background_img)
-    
+
     def onclick(self):
         mouse_pos = pygame.mouse.get_pos()
         return [part.get_text() for part in self.show_list.onclick(mouse_pos)]
-    
-    def keydown(self,event:pygame.event):
-        if event.key in [pygame.K_w,pygame.K_UP]:
+
+    def keydown(self, event: pygame.event):
+        if event.key in [pygame.K_w, pygame.K_UP]:
             return 'up'
-        elif event.key in [pygame.K_a,pygame.K_LEFT]:
+        elif event.key in [pygame.K_a, pygame.K_LEFT]:
             return 'left'
-        elif event.key in [pygame.K_s,pygame.K_DOWN]:
+        elif event.key in [pygame.K_s, pygame.K_DOWN]:
             return 'down'
-        elif event.key in [pygame.K_d,pygame.K_RIGHT]:
+        elif event.key in [pygame.K_d, pygame.K_RIGHT]:
             return 'right'
-    
+
     def update(
         self,
         data,
@@ -146,7 +150,8 @@ def main():
                 exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 multi_player_page.onclick()
-            elif event.type==pygame.KEYDOWN:
-                keydown_str=multi_player_page.keydown(event)
+            elif event.type == pygame.KEYDOWN:
+                keydown_str = multi_player_page.keydown(event)
                 print(keydown_str)
         multi_player_page.show(window)
+        pygame.display.flip()

@@ -46,8 +46,8 @@ class Button(pygame.sprite.Sprite):
         if size is None:
             size = self.font.render(self.text, antialias, self.font_color).get_size()
         self.size = size
-        self.onclick_font_color=tuple(min(i+20,255) for i in self.font_color)
-        self.is_onclick=False
+        self.onclick_font_color = tuple(min(i + 20, 255) for i in self.font_color)
+        self.is_onclick = False
 
         self.rect = pygame.Rect(
             *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
@@ -69,7 +69,11 @@ class Button(pygame.sprite.Sprite):
             self.border_width,
             self.border_radius,
         )
-        self.font_image = self.font.render(self.text, self.antialias, self.font_color if not self.is_onclick else self.onclick_font_color)
+        self.font_image = self.font.render(
+            self.text,
+            self.antialias,
+            self.font_color if not self.is_onclick else self.onclick_font_color,
+        )
         font_rect = self.font_image.get_rect()
         self.image.blit(
             self.font_image,
@@ -90,19 +94,19 @@ class Button(pygame.sprite.Sprite):
             and mouse_pos[1] > self.center[1] - self.size[1] // 2
             and mouse_pos[1] < self.center[1] + self.size[1] // 2
         ):
-            if self.is_onclick==False:
-                self.is_onclick=True
+            if self.is_onclick == False:
+                self.is_onclick = True
                 self._draw()
             return True
         else:
-            if self.is_onclick==True:
-                self.is_onclick=False
+            if self.is_onclick == True:
+                self.is_onclick = False
                 self._draw()
             return False
 
     def set_text(self, text: str):
         self.text = text
         self._draw()
-        
+
     def get_text(self):
         return self.text

@@ -41,7 +41,7 @@ class Text:
 
     def get_text(self):
         return self.text
-    
+
     def set_text(self, text: str):
         self.text = text
         self.size = self.font.render(

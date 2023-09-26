@@ -1,6 +1,15 @@
 import os
+from abc import ABC,abstractmethod
 
 import pygame
+
+class abstract_onclick_comp(ABC):
+    @abstractmethod
+    def onclick(self,mouse_pos):
+        pass
+    @abstractmethod
+    def get_text(self,mouse_pos):
+        pass
 
 
 def get_font(font, font_size=20):

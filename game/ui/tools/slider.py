@@ -1,8 +1,9 @@
 import pygame
 
+from .common import abstract_onclick_comp
 
 # 拉链 在一个范围内通过鼠标点击线的相对位置来决定数字大小
-class Slider:
+class Slider(abstract_onclick_comp):
     def __init__(
         self, center, size=60, mouse_percent=0.5, data_range=(0, 100), font=None
     ):
@@ -58,5 +59,5 @@ class Slider:
         else:
             return False
 
-    def getNum(self):
+    def get_text(self):
         return int(self.mouse_percent * (self.data_range[1] - self.data_range[0]))

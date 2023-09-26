@@ -33,7 +33,6 @@ class GameGrid:
         }
 
         self.grid_cells = []
-        self.init_grid()
         self.matrix = l.new_game(d.GRID_LEN)
         self.history_matrixs = []
         self.update_grid_cells()
@@ -73,10 +72,8 @@ class GameGrid:
             for j in range(d.GRID_LEN):
                 new_number = self.matrix[i][j]
                 if new_number == 0:
-                    # cell_color = d.BACKGROUND_COLOR_CELL_EMPTY   空白格的颜色
                     number_text = ""
                 else:
-                    cell_color = d.BACKGROUND_COLOR_DICT[new_number]
                     number_text = str(new_number)
                 cell_rect = pygame.Rect(
                     j * (d.SIZE / d.GRID_LEN),

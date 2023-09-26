@@ -55,7 +55,7 @@ if __name__ == '__main__':
             start_power=start_power,
             power_init_range=0,
         ),
-        128,
+        2 ** 9,
     )
     # env = ParallelEnviroment(gym.make('LunarLander-v2'), 8)
     cfg.num_states = env.num_states

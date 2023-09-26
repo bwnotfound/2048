@@ -68,8 +68,6 @@ class multi_player:
         self.another_exit_button = Button(
             (window_width * 4 // 5, window_height * 8 // 27),
             exit_str,
-            border_color=(100, 100, 100, 100),
-            border_radius=20,
         )
         self.show_list = ComponentGroup(
             [
@@ -125,11 +123,16 @@ class multi_player:
         self.another_data = another_data
         self.another_score = another_score
         self.another_step = another_step
+        self.chess.update(data)
+        self.score_text.set_text(f'score: {self.score}')
+        self.step_text.set_text(f'step: {self.step}')
+        self.another_chess.update(another_data)
+        self.another_score_text.set_text(f'score: {self.another_score}')
+        self.another_step_text.set_text(f'step: {self.another_step}')
+        
 
 
-def main():
-    window_width = 1280
-    window_height = 720
+def main(config):
     data = [[2, 3, 4, 8], [2, 0, 2, 16], [32, 64, 128, 256], [512, 1024, 2048, 4096]]
     another_data = [
         [2, 3, 4, 8],
@@ -137,9 +140,9 @@ def main():
         [512, 1024, 2048, 4096],
         [32, 64, 128, 256],
     ]
-    window = pygame.display.set_mode((window_width, window_height))
+    window = pygame.display.set_mode(( config['window']['width'],  config['window']['height']))
     pygame.init()
-    multi_player_page = multi_player(background_img='game\\ui\\src\\img\\multi_bg.jpg')
+    multi_player_page = multi_player(background_img=config['window']['multi_player']['background_img_uri'])
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     multi_player_page.update(data, 100, 200, another_data, 150, 250)
     multi_player_page.show(window)

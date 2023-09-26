@@ -7,4 +7,10 @@ title = "2048 Game"
 
 [window.menu]
 background_img_uri = "game/ui/assets/images/menu_background.jpg"
-menu_font_uri = "game/ui/assets/fonts/Ac.ttf"
+menu_font_uri = "game/ui/assets/fonts/Milky Mania.ttf"
+
+[window.sing_player]
+background_img_uri = "game/ui/assets/images/sing_plyaer_background.jpg"
+
+[window.multi_player]
+background_img_uri = "game/ui/assets/images/multi_background.jpg"

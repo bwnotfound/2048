@@ -1,5 +1,4 @@
 import random
-import time
 import os
 
 import pygame
@@ -14,12 +13,12 @@ class Menu:
         window_width=1280,
         window_height=720,
         background_img=None,
-        background_color=(0, 0, 0),
+        background_color=None,
+        menu_font=None,
     ):
         r = random.randrange(75, 150)
         g = random.randrange(125, 200)
         b = random.randrange(100, 175)
-        menu_font = 'game\\ui\\src\\font\\Milky Mania.ttf'
         self.menu_title = Text(
             (window_width // 2, window_height // 8),
             '2048',
@@ -63,7 +62,7 @@ class Menu:
         self.show_list = Comp_Collection(
             [self.menu_title, self.start_btn, self.multiplayer_btn, self.setting_btn]
         )
-        if background_img != None:
+        if background_img is not None:
             if not os.path.exists(background_img):
                 print(f'img {background_img} not exists')
             else:
@@ -80,17 +79,22 @@ class Menu:
 
     ## 返回被点击的所有组件对应的字符串的列表
     def onclick(self, mouse_pos):
-        return [part.get_text() for part in self.show_list.onclick(mouse_pos)]  # TODO: 没有检查是否有get_text方法。建议做成基类
+        return [
+            part.get_text() for part in self.show_list.onclick(mouse_pos)
+        ]  # TODO: 没有检查是否有get_text方法。建议做成基类
 
 
-def main():
-    window_width = 1280
-    window_height = 720
+def main(config):
+    window_width = config['window']['width']
+    window_height = config['window']['height']
 
     window = pygame.display.set_mode((window_width, window_height))
     pygame.init()
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
-    menu_page = Menu(background_img='game\\ui\\src\\img\\menu_bg.jpg')
+    menu_page = Menu(
+        background_img=config['window']['menu']['menu_font_uri'],
+        menu_font=config['window']['menu']['background_img_uri'],
+    )
     menu_page.show(window)
     while True:
         for event in pygame.event.get():

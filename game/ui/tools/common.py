@@ -4,7 +4,9 @@ import pygame
 
 
 def get_font(font, font_size=20):
-    if font == None or font in pygame.font.get_fonts():
+    if isinstance(font, pygame.font.Font):
+        return font
+    if font is None or font in pygame.font.get_fonts():
         font = pygame.font.SysFont(font, font_size)
     elif isinstance(font, str) and os.path.exists(font):
         font = pygame.font.Font(font, font_size)

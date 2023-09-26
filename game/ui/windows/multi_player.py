@@ -1,6 +1,6 @@
 import pygame
 import os
-from ..tools import Text, Comp_Collection, Button, Chessboard
+from ..tools import Text, ComponentGroup, Button, Chessboard
 
 window_width = 1280  ##之后丢config.json里
 window_height = 720
@@ -71,7 +71,7 @@ class multi_player:
             border_color=(100, 100, 100, 100),
             border_radius=20,
         )
-        self.show_list = Comp_Collection(
+        self.show_list = ComponentGroup(
             [
                 self.score_text,
                 self.step_text,

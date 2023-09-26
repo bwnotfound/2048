@@ -4,7 +4,7 @@ import os
 import pygame
 from pygame.sprite import RenderPlain
 
-from ..tools import Button, Text, Slider, InputBox, Comp_Collection, Chessboard
+from ..tools import Button, Text, Slider, InputBox, ComponentGroup, Chessboard
 
 
 class Menu:
@@ -59,7 +59,7 @@ class Menu:
             font_size=100,
             font=menu_font,
         )
-        self.show_list = Comp_Collection(
+        self.show_list = ComponentGroup(
             [self.menu_title, self.start_btn, self.multiplayer_btn, self.setting_btn]
         )
         if background_img is not None:

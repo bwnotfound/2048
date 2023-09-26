@@ -15,6 +15,16 @@ def get_font(font, font_size=20):
         font = pygame.font.SysFont(None, font_size)
     return font
 
+def load_image(img_uri, size=None):
+    if img_uri is not None:
+        if not os.path.exists(img_uri):
+            raise FileNotFoundError(f'img {img_uri} not exists')
+        image = pygame.image.load(img_uri)
+        if size is not None:
+            img_uri = pygame.transform.scale(
+                image, size
+            )
+    return img_uri
 
 def fill_rect(surface: pygame.Surface, rect, color, border_radius):
     if isinstance(rect, tuple):

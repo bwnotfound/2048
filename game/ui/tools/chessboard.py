@@ -28,7 +28,7 @@ class Chessboard:
         self.size = size
         self.row_num = row_num
         self.background_color = background_color
-        self.data = [[0 for _ in range(row_num)] for _ in range(row_num)]
+        self.board = [[0 for _ in range(row_num)] for _ in range(row_num)]
         self.img = img
 
     def _show_part(self, center, value, width, height, window):
@@ -65,7 +65,7 @@ class Chessboard:
             pygame.draw.rect(window, self.background_color, rect)
         for i in range(self.row_num):
             for j in range(self.row_num):
-                if self.data[i][j] in color_dict.keys():
+                if self.board[i][j] in color_dict.keys():
                     self._show_part(
                         (
                             self.center[0]
@@ -75,7 +75,7 @@ class Chessboard:
                             - self.size[1] // 2
                             + self.size[1] * (2 * i + 1) // self.row_num // 2,
                         ),
-                        self.data[i][j],
+                        self.board[i][j],
                         self.size[0] * 0.8 // self.row_num,
                         self.size[1] * 0.8 // self.row_num,
                         window,
@@ -83,4 +83,4 @@ class Chessboard:
 
     # data:记录棋盘数据的二维数组
     def update(self, data):
-        self.data = data
+        self.board = data

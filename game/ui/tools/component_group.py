@@ -1,7 +1,7 @@
 import pygame
 
 
-class Comp_Collection:
+class ComponentGroup:
     def __init__(self, part_list: list):
         self.show_list = []
         self.onclick_list = []
@@ -18,9 +18,9 @@ class Comp_Collection:
     def update(
         self, window: pygame.Surface, background_img=None, background_color=None
     ):
-        assert not (
-            background_color is None and background_img is None
-        ), "background_img和background_color不同时为None"
+        r"""
+            建议background_img和background_color选其一调用,默认background_img覆盖background_color
+        """
         if background_color is not None:
             window.fill(background_color)
         if background_img is not None:

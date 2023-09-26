@@ -1,7 +1,8 @@
 import pygame
+from .common import abstract_onclick_comp
 
 
-class InputBox(pygame.sprite.Sprite):
+class InputBox(pygame.sprite.Sprite,abstract_onclick_comp):
     def __init__(self, center, char_num=-1, color=(100, 100, 100), size=60, font=None):
         self.center = center
         self.char_num = char_num

@@ -24,19 +24,19 @@ class Config:
         self.eval_eps = 512  # 评估的回合数
         self.eval_per_episode = 2000  # 评估的频率
         self.batch_size = 65536
-        self.mini_batch_size = 2048
+        self.mini_batch_size = 4096
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 20  # 更新策略网络的次数
-        self.actor_lr = 1e-3  # actor网络的学习率
-        self.critic_lr = 1e-3  # critic网络的学习率
+        self.actor_lr = 1e-4  # actor网络的学习率
+        self.critic_lr = 1e-4  # critic网络的学习率
         self.eps_clip = 0.2  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.actor_hidden_dim = 32  # actor网络的隐藏层维度
+        self.actor_hidden_dim = 64  # actor网络的隐藏层维度
         self.actor_num_heads = 2
         self.actor_num_layers = 2
-        self.critic_hidden_dim = 32  # critic网络的隐藏层维度
+        self.critic_hidden_dim = 64  # critic网络的隐藏层维度
         self.critic_num_heads = 2
         self.critic_num_layers = 2
 

@@ -23,15 +23,15 @@ class Config:
         self.max_steps = 1000  # 每个回合的最大步数
         self.eval_eps = 512  # 评估的回合数
         self.eval_per_episode = 2000  # 评估的频率
-        self.batch_size = 2 ** 18
-        self.mini_batch_size = 2 ** 13
+        self.batch_size = 2**18
+        self.mini_batch_size = 2**14
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 5  # 更新策略网络的次数
-        self.actor_lr = 1e-4  # actor网络的学习率
-        self.critic_lr = 1e-4  # critic网络的学习率
-        self.eps_clip = 0.2  # epsilon-clip
+        self.actor_lr = 1e-5  # actor网络的学习率
+        self.critic_lr = 1e-5  # critic网络的学习率
+        self.eps_clip = 0.15  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.actor_hidden_dim = 256  # actor网络的隐藏层维度
         self.actor_num_heads = 2
@@ -189,6 +189,7 @@ class PGReplay:
 class Agent:
     def __init__(self, cfg: Config) -> None:
         self.gamma = cfg.gamma
+        self.writer = None
         self.device = torch.device(cfg.device)
         self.actor = ActorSoftmax(
             cfg.input_dim,
@@ -245,7 +246,8 @@ class Agent:
             dist.log_prob(action).detach().cpu().numpy(),
         )
 
-    def update(self):
+    def update(self, step_count):
+        assert self.writer is not None
         if len(self.memory) < self.batch_size:
             return
         (
@@ -313,6 +315,7 @@ class Agent:
             ):
                 dist = Categorical(self.actor(old_states[index]))
                 dist_entropy = dist.entropy().mean()
+                entropy_loss = -self.entropy_coef * dist_entropy
                 new_log_probs = dist.log_prob(old_actions[index])
                 new_advantages = advantages[index]
                 ratio = torch.exp(new_log_probs - old_log_probs[index])
@@ -321,9 +324,7 @@ class Agent:
                     torch.clamp(ratio, 1 - self.eps_clip, 1 + self.eps_clip)
                     * new_advantages
                 )
-                actor_loss = (
-                    -torch.min(surr1, surr2).mean() - self.entropy_coef * dist_entropy
-                )
+                actor_loss = -torch.min(surr1, surr2).mean() + entropy_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 0.5)
@@ -338,8 +339,17 @@ class Agent:
             ratio = ratio.detach().cpu().numpy()
             edge_ratio = (self.eps_clip - np.abs(ratio - 1)) < 0.01
             edge_ratio = np.sum(edge_ratio).item() / np.prod(edge_ratio.shape)
-            t_bar.set_postfix_str("edge ratio: {:.2f}, critic loss: {:.2f}".format(edge_ratio, critic_loss.item()))
+            t_bar.set_postfix_str(
+                "edge ratio: {:.2f}, critic loss: {:.2f}, entropy_loss: {:.2f}".format(
+                    edge_ratio, critic_loss.item(), entropy_loss.item()
+                )
+            )
             t_bar.update()
+        self.writer.add_scalar("Train/edge_ratio", edge_ratio, step_count)
+        self.writer.add_scalar("Train/critic_loss", critic_loss.item(), step_count)
+        self.writer.add_scalar(
+            "Train/entropy_loss", entropy_loss.item(), step_count
+        )
         t_bar.close()
 
 
@@ -385,6 +395,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
     '''训练'''
     print("开始训练！")
     writer = SummaryWriter(save_dir)
+    agent.writer = writer
     best_ep_reward = -999999  # 记录最大回合奖励
     output_agent = None
     t_bar = tqdm(total=cfg.train_eps, ncols=120, colour="green")
@@ -451,7 +462,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                         store_dones[i][j],
                     )
                 )
-        agent.update()  # 更新智能体
+        agent.update(len(parallel_env.envs))  # 更新智能体
         if (i_ep // len(parallel_env.envs)) % (
             cfg.eval_per_episode // len(parallel_env.envs)
         ) == 0:

@@ -189,7 +189,6 @@ class PGReplay:
 class Agent:
     def __init__(self, cfg: Config) -> None:
         self.gamma = cfg.gamma
-        self.writer = None
         self.device = torch.device(cfg.device)
         self.actor = ActorSoftmax(
             cfg.input_dim,
@@ -246,8 +245,7 @@ class Agent:
             dist.log_prob(action).detach().cpu().numpy(),
         )
 
-    def update(self, step_count):
-        assert self.writer is not None
+    def update(self, writer, step_count):
         if len(self.memory) < self.batch_size:
             return
         (
@@ -345,9 +343,9 @@ class Agent:
                 )
             )
             t_bar.update()
-        self.writer.add_scalar("Train/edge_ratio", edge_ratio, step_count)
-        self.writer.add_scalar("Train/critic_loss", critic_loss.item(), step_count)
-        self.writer.add_scalar(
+        writer.add_scalar("Train/edge_ratio", edge_ratio, step_count)
+        writer.add_scalar("Train/critic_loss", critic_loss.item(), step_count)
+        writer.add_scalar(
             "Train/entropy_loss", entropy_loss.item(), step_count
         )
         t_bar.close()
@@ -395,7 +393,6 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
     '''训练'''
     print("开始训练！")
     writer = SummaryWriter(save_dir)
-    agent.writer = writer
     best_ep_reward = -999999  # 记录最大回合奖励
     output_agent = None
     t_bar = tqdm(total=cfg.train_eps, ncols=120, colour="green")
@@ -462,7 +459,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                         store_dones[i][j],
                     )
                 )
-        agent.update(len(parallel_env.envs))  # 更新智能体
+        agent.update(writer, len(parallel_env.envs))  # 更新智能体
         if (i_ep // len(parallel_env.envs)) % (
             cfg.eval_per_episode // len(parallel_env.envs)
         ) == 0:

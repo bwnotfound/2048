@@ -1,23 +1,23 @@
 import pygame
 import os
-from ..tools import Text, Need_to_show, Button, Chessboard
+from ..tools import Text, ComponentGroup, Button, Chessboard
 
 window_width = 1280  ##之后丢config.json里
 window_height = 720
 
 
 class multi_player:
-    def __init__(self, bg_img=None, background_color=(0, 0, 0)):
-        if bg_img != None:
-            if not os.path.exists(bg_img):
-                print(f'img {bg_img} not exists')
+    def __init__(self, background_img=None, background_color=(0, 0, 0)):
+        if background_img != None:
+            if not os.path.exists(background_img):
+                print(f'img {background_img} not exists')
             else:
-                image = pygame.image.load(bg_img)
-                self.bg_img = pygame.transform.scale(
+                image = pygame.image.load(background_img)
+                self.background_img = pygame.transform.scale(
                     image, (window_width, window_height)
                 )
         else:
-            self.bg_img = None
+            self.background_img = None
         self.background_color = background_color
 
         self.score = 0
@@ -30,66 +30,81 @@ class multi_player:
         self.another_data = [[0 for _ in range(4)] for _ in range(4)]
         self.another_pos_item_num = {'del_one_blank': 0, 'double_one_blank': 0, 'c': 0}
 
-    def show(self, window: pygame.Surface):
-        if self.bg_img != None:
-            window.blit(self.bg_img, (0, 0))
-        else:
-            window.fill(self.background_color)
+        exit_str = 'surrender'
         score_str = 'score: ' + str(self.score)
-        score_text = Text((window_width * 1 // 5, window_height * 19 // 27), score_str)
+        self.score_text = Text(
+            (window_width * 1 // 5, window_height * 19 // 27), score_str
+        )
+
         step_str = 'step: ' + str(self.step)
-        step_text = Text((window_width * 1 // 5, window_height * 21 // 27), step_str)
-        # chess=Chessboard((window_width//2,window_height//2),(window_width,window_height))
-        chess = Chessboard(
+        self.step_text = Text(
+            (window_width * 1 // 5, window_height * 21 // 27), step_str
+        )
+        self.chess = Chessboard(
             (window_width // 5, window_height // 3),
             (window_width * 9 // 25, window_height * 17 // 27),
             len(self.data),
             background_color=(181, 170, 156),
         )
-        chess.update(self.data)
-        ##道具还没写
-        exit_str = 'I Loss'
-        exit_button = Button(
+        self.exit_button = Button(
             (window_width * 1 // 5, window_height * 26 // 27), exit_str
         )
-        show_list = Need_to_show([score_text, step_text, chess, exit_button])
-
         another_score_str = 'score: ' + str(self.another_score)
-        another_score_text = Text(
+        self.another_score_text = Text(
             (window_width * 4 // 5, window_height * 1 // 27), another_score_str
         )
         another_step_str = 'step: ' + str(self.another_step)
-        another_step_text = Text(
+        self.another_step_text = Text(
             (window_width * 4 // 5, window_height * 3 // 27), another_step_str
         )
         # chess=Chessboard((window_width//2,window_height//2),(window_width,window_height))
-        another_chess = Chessboard(
+        self.another_chess = Chessboard(
             (window_width * 4 // 5, window_height * 2 // 3),
             (window_width * 9 // 25, window_height * 17 // 27),
             len(self.another_data),
             background_color=(181, 170, 156),
         )
-        another_chess.update(self.another_data)
         ##道具还没写
-        another_exit_button = Button(
+        self.another_exit_button = Button(
             (window_width * 4 // 5, window_height * 8 // 27),
             exit_str,
             border_color=(100, 100, 100, 100),
             border_radius=20,
         )
-        show_list = Need_to_show(
+        self.show_list = ComponentGroup(
             [
-                score_text,
-                step_text,
-                chess,
-                exit_button,
-                another_score_text,
-                another_step_text,
-                another_chess,
-                another_exit_button,
+                self.score_text,
+                self.step_text,
+                self.chess,
+                self.exit_button,
+                self.another_score_text,
+                self.another_step_text,
+                self.another_chess,
+                self.another_exit_button,
             ]
         )
-        show_list.update(window, bg_img=self.bg_img)
+
+    def show(self, window: pygame.Surface):
+        if self.background_img != None:
+            window.blit(self.background_img, (0, 0))
+        else:
+            window.fill(self.background_color)
+        ##道具还没写
+        self.show_list.update(window, background_img=self.background_img)
+
+    def onclick(self):
+        mouse_pos = pygame.mouse.get_pos()
+        return [part.get_text() for part in self.show_list.onclick(mouse_pos)]
+
+    def keydown(self, event: pygame.event):
+        if event.key in [pygame.K_w, pygame.K_UP]:
+            return 'up'
+        elif event.key in [pygame.K_a, pygame.K_LEFT]:
+            return 'left'
+        elif event.key in [pygame.K_s, pygame.K_DOWN]:
+            return 'down'
+        elif event.key in [pygame.K_d, pygame.K_RIGHT]:
+            return 'right'
 
     def update(
         self,
@@ -124,7 +139,7 @@ def main():
     ]
     window = pygame.display.set_mode((window_width, window_height))
     pygame.init()
-    multi_player_page = multi_player(bg_img='game\\ui\\src\\img\\multi_bg.jpg')
+    multi_player_page = multi_player(background_img='game\\ui\\src\\img\\multi_bg.jpg')
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     multi_player_page.update(data, 100, 200, another_data, 150, 250)
     multi_player_page.show(window)
@@ -133,3 +148,10 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                multi_player_page.onclick()
+            elif event.type == pygame.KEYDOWN:
+                keydown_str = multi_player_page.keydown(event)
+                print(keydown_str)
+        multi_player_page.show(window)
+        pygame.display.flip()

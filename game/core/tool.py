@@ -7,7 +7,7 @@ class ToolsBag:
         self.bag = np.zeros(size, dtype=int)  # 默认背包大小与棋盘行列数相同
 
     # 道具（添加数字）
-    def get_tool(self, name):  # 背包的第pos个位置，获得道具编号为name的道具
+    def add_tool(self, name):  # 背包的第pos个位置，获得道具编号为name的道具
         indices = np.where(self.bag == 0)
         if len(indices) == 0:
             bag = np.roll(self.bag, -1)
@@ -17,9 +17,10 @@ class ToolsBag:
         self.bag[pos] = name
         return self.bag
 
+    # TODO: 这里的use_tool函数需要修改。需要实际的使用道具（可以传回道具name），同时要明确使用后是不是一定要移除道具
     def use_tool(self, name):  # 使用背包中的某一个道具
         index = np.where(self.bag == name)[0]
-        while index < self.bag.size - 1:
-            self.bag[index] = self.bag[index + 1]
+        for i in range(index, self.bag.size - 1):
+            self.bag[i] = self.bag[i + 1]
         self.bag[self.bag.size - 1] = 0
         return self.bag

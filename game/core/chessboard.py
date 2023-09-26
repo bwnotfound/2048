@@ -6,7 +6,7 @@ class ChessBoard:
     def __init__(self, size=4):
         self.size = size
         self.board = np.zeros((size, size), dtype=int)
-        self.board = self.add_new_num(2)
+        self.add_new_num(2)
 
     def add_new_num(self, num):
         indices = np.where(self.board == 0)
@@ -18,34 +18,39 @@ class ChessBoard:
     # 游戏控制
     ####
 
-    # 游戏状态 均需要每回合调用
     def game_state_check(self, goal):
+        r"""
+        游戏状态 均需要每回合调用
+
+        return:
+            0: continue(not over)
+            1: win
+            2: lose
+        """
         # 获胜条件检查
         if np.any(self.board == goal):
-            return 'win'
+            return 1
         # 空格检查
         if np.any(self.board == 0):
-            return 'not over'
+            return 0
         # 如果没有空格，检查是否还能进行消除
-        if np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(self.board[:, :-1] == self.board[:, 1:]):
-            return 'not over'
-        if np.any(self.board[-1, :-1] == self.board[-1, 1:]):
-            return 'not over'
-        if np.any(self.board[:-1, -1] == self.board[1:, -1]):
-            return 'not over'
-        return 'lose'
+        if np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(
+            self.board[:, :-1] == self.board[:, 1:]
+        ):
+            return 0
+        return 2
 
     # 检查目前场上的最大数字
-    def maxnum_check(self):
+    def max_number(self):
         return np.max(self.board)
 
     # 计算目前得分
-    def cal_allnum(self):
+    def calc_score(self):
         return np.sum(self.board)
 
     # 游戏状态控制
-    # 翻转
-    def reverse(self):
+    # 水平翻转
+    def h_reverse(self):
         return np.flip(self.board, axis=1)
 
     # 转置

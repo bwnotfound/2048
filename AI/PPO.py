@@ -21,16 +21,16 @@ class Config:
         self.device = "cuda"  # device to use
         self.train_eps = 1000000  # 训练的回合数
         self.max_steps = 1000  # 每个回合的最大步数
-        self.eval_eps = 512  # 评估的回合数
-        self.eval_per_episode = 2000  # 评估的频率
-        self.batch_size = 2**18
-        self.mini_batch_size = 2**14
+        self.eval_eps = 1024  # 评估的回合数
+        self.eval_per_episode = 10000  # 评估的频率
+        self.batch_size = 2**16
+        self.mini_batch_size = 2**12
 
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 5  # 更新策略网络的次数
-        self.actor_lr = 1e-5  # actor网络的学习率
-        self.critic_lr = 1e-5  # critic网络的学习率
+        self.actor_lr = 3e-4  # actor网络的学习率
+        self.critic_lr = 3e-4  # critic网络的学习率
         self.eps_clip = 0.15  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
         self.actor_hidden_dim = 256  # actor网络的隐藏层维度
@@ -245,7 +245,7 @@ class Agent:
             dist.log_prob(action).detach().cpu().numpy(),
         )
 
-    def update(self, writer, step_count):
+    def update(self, writer, i_step):
         if len(self.memory) < self.batch_size:
             return
         (
@@ -343,10 +343,10 @@ class Agent:
                 )
             )
             t_bar.update()
-        writer.add_scalar("Train/edge_ratio", edge_ratio, step_count)
-        writer.add_scalar("Train/critic_loss", critic_loss.item(), step_count)
+        writer.add_scalar("Train/edge_ratio", edge_ratio, i_step)
+        writer.add_scalar("Train/critic_loss", critic_loss.item(), i_step)
         writer.add_scalar(
-            "Train/entropy_loss", entropy_loss.item(), step_count
+            "Train/entropy_loss", entropy_loss.item(), i_step
         )
         t_bar.close()
 
@@ -459,7 +459,7 @@ def train(cfg: Config, parallel_env, agent: Agent, save_dir, last_epoch=0):
                         store_dones[i][j],
                     )
                 )
-        agent.update(writer, len(parallel_env.envs))  # 更新智能体
+        agent.update(writer, i_ep)  # 更新智能体
         if (i_ep // len(parallel_env.envs)) % (
             cfg.eval_per_episode // len(parallel_env.envs)
         ) == 0:

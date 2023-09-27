@@ -13,13 +13,13 @@ from common import ParallelEnviroment
 def human_run(agent: Agent):
     env = gym.make(
         cfg.env_name,
-        size=4,
-        render_fps=50,
+        size=size,
+        render_fps=4,
         max_episode_steps=cfg.max_steps,
         max_steps=cfg.max_steps,
         max_power=max_power,
         start_power=start_power,
-        power_init_range=0,
+        power_init_range=power_init_range,
         render_mode="human",
     )
     # env = gym.make('LunarLander-v2', render_mode="human",)
@@ -41,6 +41,7 @@ if __name__ == '__main__':
     cfg.max_steps = 2**13 + 20
     max_power = 14
     start_power = 1
+    power_init_range = 1
     size = 4
     cfg.input_dim = max_power
 
@@ -53,7 +54,7 @@ if __name__ == '__main__':
             max_steps=cfg.max_steps,
             max_power=max_power,
             start_power=start_power,
-            power_init_range=0,
+            power_init_range=power_init_range,
         ),
         2 ** 8,
     )

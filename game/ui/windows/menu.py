@@ -92,8 +92,8 @@ def main(config):
     pygame.init()
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     menu_page = Menu(
-        background_img=config['window']['menu']['menu_font_uri'],
-        menu_font=config['window']['menu']['background_img_uri'],
+        background_img=config['window']['menu']['background_img_uri'],
+        menu_font=config['window']['menu']['menu_font_uri'],
     )
     menu_page.show(window)
     while True:

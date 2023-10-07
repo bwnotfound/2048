@@ -1,5 +1,4 @@
 import pygame
-import os
 from ..tools import Text, ComponentGroup, Button, Chessboard
 from ..tools.common import load_image
 
@@ -11,6 +10,7 @@ class SinglePlayer:
         window_height,
         background_img=None,
         background_color=None,
+        task_font=None,
     ):
         self.window_width = window_width
         self.window_height = window_height
@@ -18,17 +18,24 @@ class SinglePlayer:
         self.background_color = background_color
         self.score = 0
         self.step = 0
-
+        self.task_str='task'
+        self.task_text=Text(
+            (window_width//4,window_height//8),
+            self.task_str,
+            font_color=(200,140,70),
+            font=task_font,
+        )
         self.score_text = Text(
-            (window_width // 4, window_height // 8),
+            (window_width * 3 // 4, window_height *3// 16),
             self.score_str,
+            font_color=(150,200,165),
         )
         self.step_text = Text(
-            (window_width * 3 // 4, window_height // 8), self.step_str
+            (window_width * 3 // 4, window_height * 5 // 16), self.step_str,font_color=(150,200,165),
         )
         self.data = [[0 for _ in range(4)] for _ in range(4)]
         self.chess = Chessboard(
-            (window_width // 3, window_height * 5 // 8),
+            (window_width *8// 27, window_height * 19 // 32),
             (window_height * 3 // 4, window_height * 3 // 4),
             len(self.data),
             background_color=(181, 170, 156),
@@ -48,6 +55,7 @@ class SinglePlayer:
 
         self.show_list = ComponentGroup(
             [
+                self.task_text,
                 self.score_text,
                 self.step_text,
                 self.chess,
@@ -62,7 +70,7 @@ class SinglePlayer:
 
     @property
     def step_str(self):
-        return 'step' + str(self.step)
+        return 'step: ' + str(self.step)
 
     def show(self, window):
         ##道具还没写
@@ -102,7 +110,7 @@ def main(config):
     data = [[2, 3, 4, 8], [2, 0, 2, 16], [32, 64, 128, 256], [512, 1024, 2048, 4096]]
     window = pygame.display.set_mode((window_width, window_height))
     pygame.init()
-    sing_player_page = SinglePlayer(window_width, window_height, background_img=config['window']['menu']['background_img_uri'])
+    sing_player_page = SinglePlayer(window_width, window_height, background_img=config['window']['sing_player']['background_img_uri'],task_font=config['window']['sing_player']["task_font"])
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     sing_player_page.update(data, 100, 200)
     sing_player_page.show(window)

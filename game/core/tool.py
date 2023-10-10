@@ -1,5 +1,5 @@
 import numpy as np
-
+import chessboard as cb
 
 class ToolsBag:
     def __init__(self, size):
@@ -24,3 +24,4 @@ class ToolsBag:
             self.bag[i] = self.bag[i + 1]
         self.bag[self.bag.size - 1] = 0
         return self.bag
+

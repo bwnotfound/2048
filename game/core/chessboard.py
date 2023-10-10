@@ -185,7 +185,7 @@ class ChessBoard:
             for i in range(self.size):
                 for j in range(self.size):
                     if self.board[i][j] == self.board[self.size - i - 1][self.size - j - 1] \
-                            and i <= self.size // 2 and j <= len(board[0]) // 2:
+                            and i <= self.size // 2 and j <= self.size // 2:
                         count += 1
             self.prizescore += count*self.stage*20
 

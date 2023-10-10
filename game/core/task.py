@@ -34,7 +34,7 @@ class TaskList:
             self.id = 0
             self.content = ""
             self.time = 0
-            # 触发奖励机制
+            # TODO:触发奖励机制
             return
         else:
             self.time -= 1
@@ -43,4 +43,5 @@ class TaskList:
                 self.id = 0
                 self.content = ""  # 任务失败，时间到
                 self.time = 0
+            # TODO:触发惩罚机制
             return

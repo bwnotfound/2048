@@ -11,10 +11,6 @@ class ChessBoard:
         self.stage = 1  # 根据目前的最大值设计生成数字的概率
         self.score = 0
         self.prizescore = 0  # 奖励分
-        self.tool_5_flag = 0
-        self.tool_7_flag = 0
-        self.specialx = -1
-        self.specialy = -1   # 记录工具所需特殊点的坐标
 
     def add_new_num(self, num=0):
         if num == 0:  # 未指定生成值时，根据stage判断生成值
@@ -43,7 +39,7 @@ class ChessBoard:
     ####
 
     def game_state_check(self, goal):
-        """
+        r"""
         游戏状态 均需要每回合调用
 
         return:
@@ -52,10 +48,8 @@ class ChessBoard:
             2: lose
         """
         # 获胜条件检查
-        themax = self.max_number()
-
-        # 得分检查
-        self.score = self.calc_score()
+        themax = self.maxnum_check()
+        self.score = self.cal_allnum()
         if 2 <= themax:
             self.stage = 1
         if 32 <= themax:
@@ -66,21 +60,9 @@ class ChessBoard:
             self.stage = 4
         if np.any(self.board == goal):
             return 1
-
-        # 道具功能检查
-        if self.tool_5_flag:
-            self.tool_5_flag -= 1
-            if self.tool_5_flag == 0:   # 奖励回合结束
-                self.stage -= 1
-
-        if self.tool_7_flag:
-            self.prizescore += (self.board[self.specialx][self.specialy])/self.stage
-            self.tool_7_flag -= 1   # 奖励回合数回合-1
-
         # 空格检查
         if np.any(self.board == 0):
             return 0
-
         # 如果没有空格，检查是否还能进行消除
         if np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(
             self.board[:, :-1] == self.board[:, 1:]
@@ -201,10 +183,6 @@ class ChessBoard:
             self.newstate = 0  # 仅当newstate = 1的情况下，生成新数字
 
         elif num == 5:  # 道具5，功能: 在接下来的若干个回合中，获得新数字的期望值变大
-            if self.tool_5_flag:
-                print("有一个相同类型的道具正在被使用！")
-                return
-            self.tool_5_flag = 5   # 5个回合
             self.stage += 1
 
         elif num == 6:  # 道具6，功能: 根据场上数字的对称程度，获得一个奖励分
@@ -215,21 +193,4 @@ class ChessBoard:
                             and i <= self.size // 2 and j <= self.size // 2:
                         count += 1
             self.prizescore += count*self.stage*20
-
-        elif num == 7:  # 道具7，功能: 随机选择一个奖励格子，根据接下来的3个回合内,根据该格子上的数字获得一个奖励分
-            if self.tool_7_flag:
-                print("有一个相同类型的道具正在被使用！")
-                return
-            else:
-                self.specialx = random.randint(1, self.size)
-                self.specialy = random.randint(1, self.size)
-                # TODO：ui界面让这个格子发光
-                self.tool_7_flag = 3
-
-        elif num == 8:  # 道具8，功能：随机选择一个奖励格子，使该格子上的值翻倍
-            return
-            # TODO 具体功能待实现
-
-
-
 

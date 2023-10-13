@@ -227,7 +227,12 @@ class ChessBoard:
                 self.tool_7_flag = 3
 
         elif num == 8:  # 道具8，功能：随机选择一个奖励格子，使该格子上的值翻倍
-            return
+            while True:  # 先判断随机到的格子上是否有数字
+                self.specialx = random.randint(1, self.size)
+                self.specialy = random.randint(1, self.size)
+                if self.board[self.specialx][self.specialy] != 0:
+                    break
+            self.board[self.specialx][self.specialy] *= 2
             # TODO 具体功能待实现
 
 

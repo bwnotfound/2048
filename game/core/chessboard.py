@@ -13,6 +13,10 @@ class ChessBoard:
         self.prizescore = 0  # 奖励分
         self.tool_5_flag = 0
         self.tool_7_flag = 0
+        self.tool_9_flag = 0
+        self.tool_9_ifsub = 0
+        self.tool_10_flag = 0
+        self.non_zero_cnt = 0
         self.specialx = -1
         self.specialy = -1   # 记录工具所需特殊点的坐标
 
@@ -77,13 +81,28 @@ class ChessBoard:
             self.prizescore += (self.board[self.specialx][self.specialy])/self.stage
             self.tool_7_flag -= 1   # 奖励回合数回合-1
 
+        if self.tool_9_flag:
+            self.tool_9_flag -= 1
+            if self.tool_9_flag == 0:   # 奖励回合结束
+                if self.tool_9_ifsub:
+                    self.stage += 1
+                self.tool_9_ifsub = 0
+
+        if self.tool_10_flag:
+            self.prizescore += (self.board[self.specialx][self.specialy])/self.stage
+            self.tool_10_flag -= 1   # 奖励回合数回合-1
+            if self.tool_10_flag == 0:
+                count = np.count_nonzero(self.board)
+                merged = self.non_zero_cnt+3-count   # 合并的数量
+                self.prizescore += merged*10*self.stage
+
         # 空格检查
         if np.any(self.board == 0):
             return 0
 
         # 如果没有空格，检查是否还能进行消除
         if np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(
-            self.board[:, :-1] == self.board[:, 1:]
+            self.board[:, :-1] == self.board[:, 1:] or self.newstate == 0
         ):
             return 0
         return 2
@@ -226,9 +245,59 @@ class ChessBoard:
                 # TODO：ui界面让这个格子发光
                 self.tool_7_flag = 3
 
-        elif num == 8:  # 道具8，功能：随机选择一个奖励格子，使该格子上的值翻倍
+        elif num == 8:  # 道具8，功能：随机选择一个奖励格子，使该格子上的值翻倍(最大使256->512）
+            if np.min(self.board) >= 512:
+                print("无法使用该道具！")
+                return
+            while 1:
+                x1 = random.randint(1, self.size)
+                y1 = random.randint(1, self.size)
+                if self.board[x1][y1] != 0 & self.board[x1][y1] < self.max_number() & self.board[x1][y1] <= 256:
+                    self.board[x1][y1] *= 2
+                    return
+                else:
+                    continue
             return
-            # TODO 具体功能待实现
+
+        elif num == 9: # 道具9，功能: 在接下来的若干个回合中，获得新数字的期望值变小
+            if self.tool_9_flag:
+                print("有一个相同类型的道具正在被使用！")
+                return
+            self.tool_9_flag = 5   # 5个回合
+            if self.stage != 1:
+                self.stage -= 1
+                self.tool_9_ifsub = 1
+            else:
+                self.tool_9_ifsub = 0
+
+        elif num == 10:  # 道具10，功能:进入奖励状态，统计接下来的三个回合内完成的总合并次数，奖励一定分数：
+            if self.tool_10_flag:
+                print("有一个相同类型的道具正在被使用！")
+                return
+            self.tool_10_flag = 3
+            self.non_zero_cnt = np.nonzero(self.board)
+
+        elif num == 11:  # 道具11，功能:消除场上的某个格子上的随机数字(<=512)，将其上的分数计入奖励分
+            while 1:
+                x1 = random.randint(1, self.size)
+                y1 = random.randint(1, self.size)
+                if self.board[x1][y1] != 0 & self.board[x1][y1] <= 256:
+                    self.prizescore += self.board[x1][y1]
+                    self.board[x1][y1] = 0
+                    return
+                else:
+                    continue
+            return
+
+        elif num == 12:  # 道具12，功能:消除场上目前的最大数字，将其上的分数计入奖励分
+            max_index = np.argmax(self.board)
+            # 计算最大元素的行和列
+            x1 = max_index // self.board.shape[1]
+            y1 = max_index % self.board.shape[1]
+            self.prizescore += self.board[x1][y1]
+            self.board[x1][y1] = 0
+
+
 
 
 

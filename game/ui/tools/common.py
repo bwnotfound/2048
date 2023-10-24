@@ -8,7 +8,7 @@ class abstract_onclick_comp(ABC):
     def onclick(self,mouse_pos):
         pass
     @abstractmethod
-    def get_text(self,mouse_pos):
+    def get_text(self):
         pass
 
 

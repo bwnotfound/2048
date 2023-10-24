@@ -1,7 +1,8 @@
 import pygame
+import numpy as np
 from ..tools import Text, ComponentGroup, Button, Chessboard
 from ..tools.common import load_image
-
+from ..tools import item_bag
 
 class SinglePlayer:
     def __init__(
@@ -51,7 +52,8 @@ class SinglePlayer:
             size=(200, 50),
             background_color=(255, 255, 255, 100),
         )
-        self.pos_item_num = {'del_one_blank': 0, 'double_one_blank': 0, 'c': 0}
+        self.item_bag_num = np.zeros(12,int)
+        self.item_bag=item_bag((self.window_width*9//24,self.window_height*2//5),start_pos=(self.window_width*4//7,self.window_height*6//16))
 
         self.show_list = ComponentGroup(
             [
@@ -61,6 +63,7 @@ class SinglePlayer:
                 self.chess,
                 self.ai_button,
                 self.exit_button,
+                self.item_bag  ##这个没有show方法，自己显示
             ]
         )
 
@@ -72,8 +75,7 @@ class SinglePlayer:
     def step_str(self):
         return 'step: ' + str(self.step)
 
-    def show(self, window):
-        ##道具还没写
+    def show(self, window:pygame.Surface):
         self.chess.update(self.data)
         self.step_text.set_text(self.step_str)
         self.score_text.set_text(self.score_str)
@@ -82,16 +84,21 @@ class SinglePlayer:
             background_img=self.background_img,
             background_color=self.background_color,
         )
+        window.blit(self.item_bag.get_surface(),(self.window_width*4//7,self.window_height*6//16))
 
     def onclick(self):
         mouse_pos = pygame.mouse.get_pos()
         onclick_list = self.show_list.onclick(mouse_pos)
         return [part.get_text() for part in onclick_list]
 
-    def update(self, data, score, step, item_list=[], item_pos=[]):
+    def update(self, data, score, step, item_bag:np.ndarray, item_pos=[]):
         self.data = data
         self.score = score
         self.step = step
+        self.item_bag_num=item_bag
+        self.item_bag.update(self.item_bag_num)
+              
+        
 
     def keydown(self, event: pygame.event):
         if event.key in [pygame.K_w, pygame.K_UP]:
@@ -112,7 +119,8 @@ def main(config):
     pygame.init()
     sing_player_page = SinglePlayer(window_width, window_height, background_img=config['window']['sing_player']['background_img_uri'],task_font=config['window']['sing_player']["task_font"])
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
-    sing_player_page.update(data, 100, 200)
+    item_bag=np.array([i for i in range(1,13)])
+    sing_player_page.update(data, 100, 200,item_bag)
     sing_player_page.show(window)
     pygame.display.flip()
     while True:

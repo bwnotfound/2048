@@ -15,6 +15,7 @@ class ComponentGroup:
         for part in self.show_list:
             part.show(window)
 
+    # update相比于show,在于会更新背景，所以我为什么没有删掉show。。
     def update(
         self, window: pygame.Surface, background_img=None, background_color=None
     ):

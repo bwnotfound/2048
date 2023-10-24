@@ -24,12 +24,28 @@ color_dict = {
 
 class Chessboard:
     def __init__(self, center, size, row_num=4, background_color=(0, 0, 0), img=None):
+        self.chessboard_surface=pygame.Surface(size)
         self.center = center
         self.size = size
         self.row_num = row_num
         self.background_color = background_color
         self.board = [[0 for _ in range(row_num)] for _ in range(row_num)]
         self.img = img
+        rect = pygame.Rect(
+            self.center[0] - self.size[0] // 2,
+            self.center[1] - self.size[1] // 2,
+            self.size[0],
+            self.size[1],
+        )
+        if self.img != None:
+            if not os.path.exists(self.img):
+                print(f'img {self.img} not exists')
+            else:
+                image = pygame.image.load(self.img)
+                scaled_img = pygame.transform.scale(image, (rect.width, rect.height))
+                self.chessboard_surface.blit(scaled_img, rect.topleft)
+        else:
+            pygame.draw.rect(self.chessboard_surface, self.background_color, rect)
 
     def _show_part(self, center, value, width, height, window):
         rect = pygame.Rect(
@@ -48,21 +64,7 @@ class Chessboard:
             show_text.show(window)
 
     def show(self, window):
-        rect = pygame.Rect(
-            self.center[0] - self.size[0] // 2,
-            self.center[1] - self.size[1] // 2,
-            self.size[0],
-            self.size[1],
-        )
-        if self.img != None:
-            if not os.path.exists(self.img):
-                print(f'img {self.img} not exists')
-            else:
-                image = pygame.image.load(self.img)
-                scaled_img = pygame.transform.scale(image, (rect.width, rect.height))
-                window.blit(scaled_img, rect.topleft)
-        else:
-            pygame.draw.rect(window, self.background_color, rect)
+        
         for i in range(self.row_num):
             for j in range(self.row_num):
                 if self.board[i][j] in color_dict.keys():

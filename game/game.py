@@ -57,13 +57,15 @@ class Game:
         sing_player_page = windows.Sing_player(
             window_height=window.get_height(),
             window_width=window.get_width(),
-            background_img=self.config['window']['sing_player']['background_img_uri'],
-            task_font=self.config['window']['sing_player']["task_font"],
+            config=self.config,
         )
         my_chessboard = chessboard.ChessBoard(
-            self.config['window']['sing_player']['chessboard_size']
+            self.config['window']['sing_player']['chessboard_size'],
+            
         )
+        my_chessboard.score=my_chessboard.calc_score()
         my_item_bag = tool.ToolsBag(12)
+        item_possible_list=[i for i in range(1,13)]
         sing_player_page.update(
             data=my_chessboard.get_board(),
             score=my_chessboard.get_total_score(),
@@ -83,20 +85,37 @@ class Game:
                         return 'menu'
                     elif 'AI_clue' in onclick_list:
                         pass  ## @bwnotfound
+                    elif onclick_list!=[] :
+                        if onclick_list[0] in item_possible_list:
+                            item_num=onclick_list[0]
+                            my_chessboard.use_tools(item_num)
+                            my_item_bag.use_tool(item_num)
+                            my_chessboard.score=my_chessboard.calc_score()
 
                 elif event.type == pygame.KEYDOWN:
                     keydown_str = sing_player_page.keydown(event)
-                    print(keydown_str)
+                    if keydown_str=='up':
+                        my_chessboard.board,_,_=my_chessboard.up()
+                    if keydown_str=='down':
+                        my_chessboard.board,_,_=my_chessboard.down()
+                    if keydown_str=='right':
+                        my_chessboard.board,_,_=my_chessboard.right()
+                    if keydown_str=='left':
+                        my_chessboard.board,_,_=my_chessboard.left()
+                    my_chessboard.add_new_num()
                     
+                    state=my_chessboard.game_state_check()
+                    if state:
+                        return 'menu'
+                    ##TODO 还要写输赢的画面
                     ### 临时生成道具，到时候删
                     if my_chessboard.get_step()%3==0:
                         my_item_bag.add_tool(random.randint(1,12))
                     ###
-                    a=100
                 
                 sing_player_page.update(
                     data=my_chessboard.get_board(),
-                    score=my_chessboard.get_total_score(),
+                    score=my_chessboard.score*100000+my_chessboard.prizescore,
                     step=my_chessboard.get_step(),
                     item_bag=my_item_bag.get_item_bag(),
                 ) 

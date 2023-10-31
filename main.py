@@ -1,8 +1,6 @@
 import toml
-
-# from game.ui.windows.menu import main
-from game.ui.windows.sing_player import main
-
+from game import Game
 if __name__ == '__main__':
     config = toml.load("configs/config.toml")
-    main(config)
+    game=Game(config)
+    game.start()

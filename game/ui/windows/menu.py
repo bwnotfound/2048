@@ -5,7 +5,7 @@ import pygame
 from pygame.sprite import RenderPlain
 
 from ..tools import Button, Text, Slider, InputBox, ComponentGroup, Chessboard
-
+from .window import Window
 
 class Menu:
     def __init__(
@@ -28,7 +28,7 @@ class Menu:
         )
         self.start_btn = Button(
             (window_width // 2, window_height * 5 // 16),
-            'start',
+            'sing_player',
             font_color=(
                 r + random.randint(10, 50),
                 g + random.randint(20, 50),
@@ -104,8 +104,8 @@ def main(config):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 onclick_list = menu_page.onclick(mouse_pos)
-                if 'start' in onclick_list:
-                    print('start')
+                if 'sing_player' in onclick_list:
+                    print('sing_player')
                     pass  # 运行单人游戏界面
                 elif 'multiplayer' in onclick_list:
                     print('multi')

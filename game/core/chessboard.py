@@ -19,6 +19,7 @@ class ChessBoard:
         self.non_zero_cnt = 0
         self.specialx = -1
         self.specialy = -1   # 记录工具所需特殊点的坐标
+        self.step=0
 
     def add_new_num(self, num=0):
         if num == 0:  # 未指定生成值时，根据stage判断生成值
@@ -57,7 +58,7 @@ class ChessBoard:
         """
         # 获胜条件检查
         themax = self.max_number()
-
+        self.step+=1
         # 得分检查
         self.score = self.calc_score()
         if 2 <= themax:
@@ -297,8 +298,11 @@ class ChessBoard:
             self.prizescore += self.board[x1][y1]
             self.board[x1][y1] = 0
 
+    def get_board(self):
+        return self.board
 
-
-
-
-
+    def get_total_score(self):
+        return self.score+self.prizescore
+    
+    def get_step(self):
+        return self.step

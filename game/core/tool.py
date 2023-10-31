@@ -1,6 +1,4 @@
 import numpy as np
-import chessboard as cb
-
 class ToolsBag:
     def __init__(self, size):
         self.size = size
@@ -13,7 +11,7 @@ class ToolsBag:
             bag = np.roll(self.bag, -1)
             bag[bag.size - 1] = name
             return bag
-        pos = indices[0]  # 背包的第一个空位
+        pos = indices[0][0]  # 背包的第一个空位
         self.bag[pos] = name
         return self.bag
 
@@ -25,3 +23,5 @@ class ToolsBag:
         self.bag[self.bag.size - 1] = 0
         return self.bag
 
+    def get_item_bag(self):
+        return self.bag

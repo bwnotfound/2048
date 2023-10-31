@@ -3,8 +3,9 @@ import numpy as np
 from ..tools import Text, ComponentGroup, Button, Chessboard
 from ..tools.common import load_image
 from ..tools import item_bag
+from .window import Window
 
-class SinglePlayer:
+class Sing_player(Window):
     def __init__(
         self,
         window_width,
@@ -117,7 +118,7 @@ def main(config):
     data = [[2, 3, 4, 8], [2, 0, 2, 16], [32, 64, 128, 256], [512, 1024, 2048, 4096]]
     window = pygame.display.set_mode((window_width, window_height))
     pygame.init()
-    sing_player_page = SinglePlayer(window_width, window_height, background_img=config['window']['sing_player']['background_img_uri'],task_font=config['window']['sing_player']["task_font"])
+    sing_player_page = Sing_player(window_width, window_height, background_img=config['window']['sing_player']['background_img_uri'],task_font=config['window']['sing_player']["task_font"])
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     item_bag=np.array([i for i in range(1,13)])
     sing_player_page.update(data, 100, 200,item_bag)

@@ -1,12 +1,13 @@
 import pygame
 import os
 from ..tools import Text, ComponentGroup, Button, Chessboard
+from .window import Window
 
-window_width = 1280  ##之后丢config.json里
+window_width = 1280 
 window_height = 720
 
 
-class multi_player:
+class Multi_player:
     def __init__(self, background_img=None, background_color=(0, 0, 0)):
         if background_img != None:
             if not os.path.exists(background_img):
@@ -142,7 +143,7 @@ def main(config):
     ]
     window = pygame.display.set_mode(( config['window']['width'],  config['window']['height']))
     pygame.init()
-    multi_player_page = multi_player(background_img=config['window']['multi_player']['background_img_uri'])
+    multi_player_page = Multi_player(background_img=config['window']['multi_player']['background_img_uri'])
     # pygame.time.set_timer(pygame.USEREVENT, 5000)
     multi_player_page.update(data, 100, 200, another_data, 150, 250)
     multi_player_page.show(window)

@@ -12,7 +12,7 @@ menu_font_uri = "game/ui/assets/fonts/Milky Mania.ttf"
 [window.sing_player]
 background_img_uri = "game/ui/assets/images/sing_plyaer_background.jpg"
 task_font = "game/ui/assets/fonts/zhbtt.ttf"
-chessboard_size = 4
+chessboard_size = 5
 
 [window.multi_player]
 background_img_uri = "game/ui/assets/images/multi_background.jpg"

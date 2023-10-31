@@ -10,13 +10,12 @@ class Sing_player(Window):
         self,
         window_width,
         window_height,
-        background_img=None,
-        background_color=None,
-        task_font=None,
+        config,
+        background_color=(155,155,155)
     ):
         self.window_width = window_width
         self.window_height = window_height
-        self.background_img = load_image(background_img, (window_width, window_height))
+        self.background_img = load_image(config['window']['sing_player']['background_img_uri'], (window_width, window_height))
         self.background_color = background_color
         self.score = 0
         self.step = 0
@@ -25,7 +24,7 @@ class Sing_player(Window):
             (window_width//4,window_height//8),
             self.task_str,
             font_color=(200,140,70),
-            font=task_font,
+            font=config['window']['sing_player']['task_font'],
         )
         self.score_text = Text(
             (window_width * 3 // 4, window_height *3// 16),
@@ -35,11 +34,12 @@ class Sing_player(Window):
         self.step_text = Text(
             (window_width * 3 // 4, window_height * 5 // 16), self.step_str,font_color=(150,200,165),
         )
-        self.data = [[0 for _ in range(4)] for _ in range(4)]
+        size=config['window']['sing_player']['chessboard_size']
+        self.data = [[0 for _ in range(size)] for _ in range(size)]
         self.chess = Chessboard(
             (window_width *8// 27, window_height * 19 // 32),
             (window_height * 3 // 4, window_height * 3 // 4),
-            len(self.data),
+            size,
             background_color=(181, 170, 156),
         )
         self.ai_button = Button(

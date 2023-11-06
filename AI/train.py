@@ -13,13 +13,13 @@ from common import ParallelEnviroment
 def human_run(agent: Agent):
     env = gym.make(
         cfg.env_name,
-        size=4,
-        render_fps=50,
+        size=size,
+        render_fps=4,
         max_episode_steps=cfg.max_steps,
         max_steps=cfg.max_steps,
         max_power=max_power,
         start_power=start_power,
-        power_init_range=0,
+        power_init_range=power_init_range,
         render_mode="human",
     )
     # env = gym.make('LunarLander-v2', render_mode="human",)
@@ -39,8 +39,9 @@ def human_run(agent: Agent):
 if __name__ == '__main__':
     cfg = Config()
     cfg.max_steps = 2**13 + 20
-    max_power = 14
+    max_power = 10
     start_power = 1
+    power_init_range = 1
     size = 4
     cfg.input_dim = max_power
 
@@ -53,9 +54,9 @@ if __name__ == '__main__':
             max_steps=cfg.max_steps,
             max_power=max_power,
             start_power=start_power,
-            power_init_range=0,
+            power_init_range=power_init_range,
         ),
-        128,
+        2 ** 8,
     )
     # env = ParallelEnviroment(gym.make('LunarLander-v2'), 8)
     cfg.num_states = env.num_states
@@ -71,12 +72,6 @@ if __name__ == '__main__':
         checkpoint = torch.load(save_path)
         agent.actor.load_state_dict(checkpoint['actor'])
         agent.critic.load_state_dict(checkpoint['critic'])
-        actor_optimizer_state = checkpoint.get('actor_optimizer', None)
-        critic_optimizer_state = checkpoint.get('critic_optimizer', None)
-        if actor_optimizer_state is not None:
-            agent.actor_optimizer.load_state_dict(actor_optimizer_state)
-        if critic_optimizer_state is not None:
-            agent.critic_optimizer.load_state_dict(critic_optimizer_state)
         last_epoch = checkpoint.get('epoch', 0)
     new_agent, info = train(cfg, env, agent, save_dir=save_dir, last_epoch=last_epoch)
     # human_run(agent)

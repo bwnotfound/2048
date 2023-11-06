@@ -1,9 +1,12 @@
 import numpy as np
+from time import perf_counter
 import pygame
 import os
 from ..tools import Text, ComponentGroup, Button, Chessboard,Item_bag
 from ..tools.common import load_image
 from .window import Window
+
+from ...common import TimeCounter
 
 
 class Multi_player(Window):
@@ -88,10 +91,12 @@ class Multi_player(Window):
             window.blit(self.background_img, (0, 0))
         else:
             window.fill(self.background_color)
+        
         ##道具还没写
         self.show_list.update(window, background_img=self.background_img)
-        window.blit(self.item_bag.get_surface(),self.item_bag.start_pos)
-        window.blit(self.another_item_bag.get_surface(),self.another_item_bag.start_pos)
+        with TimeCounter("道具渲染"):
+            window.blit(self.item_bag.get_surface(),self.item_bag.start_pos)
+            window.blit(self.another_item_bag.get_surface(),self.another_item_bag.start_pos)
 
     def onclick(self,mouse_pos=(int,int)):
         return [part.get_text() for part in self.show_list.onclick(mouse_pos)]
@@ -122,9 +127,10 @@ class Multi_player(Window):
         self.another_step_text.set_text(f'step: {self.another_step}')
         self.item_bag_num=item_bag_num
         self.another_item_bag_num=another_item_bag_num
-        self.item_bag.update(self.item_bag_num)
-        self.another_item_bag.update(self.another_item_bag_num)
-        
+        with TimeCounter("item bag"):
+            self.item_bag.update(self.item_bag_num)
+            self.another_item_bag.update(self.another_item_bag_num)
+            
     def keydown(self, event: pygame.event):
         ret = []
         if event.key == pygame.K_w:

@@ -85,14 +85,14 @@ class Sing_player(Window):
             background_img=self.background_img,
             background_color=self.background_color,
         )
-        window.blit(self.item_bag.get_surface(),(self.window_width*4//7,self.window_height*6//16))
+        window.blit(self.item_bag.get_surface(),self.item_bag.start_pos)
 
     def onclick(self):
         mouse_pos = pygame.mouse.get_pos()
         onclick_list = self.show_list.onclick(mouse_pos)
         return [part.get_text() for part in onclick_list]
 
-    def update(self, data, score, step, item_bag:np.ndarray, item_pos=[]):
+    def update(self, data, score, step, item_bag:np.ndarray):
         self.data = data
         self.score = score
         self.step = step

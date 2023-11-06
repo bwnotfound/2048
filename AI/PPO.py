@@ -26,7 +26,7 @@ class Config:
         self.batch_size = 2**19
         self.mini_batch_size = 2**15
 
-        self.random_ratio = 0.03  # 随机动作的概率
+        self.random_ratio = 0.1  # 随机动作的概率
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 5  # 更新策略网络的次数
@@ -34,12 +34,8 @@ class Config:
         self.critic_lr = 3e-4  # critic网络的学习率
         self.eps_clip = 0.15  # epsilon-clip
         self.entropy_coef = 0.01  # entropy的系数
-        self.actor_hidden_dim = 256  # actor网络的隐藏层维度
-        self.actor_num_heads = 2
-        self.actor_num_layers = 2
-        self.critic_hidden_dim = 256  # critic网络的隐藏层维度
-        self.critic_num_heads = 2
-        self.critic_num_layers = 2
+        self.actor_hidden_dim = 128  # actor网络的隐藏层维度
+        self.critic_hidden_dim = 128  # critic网络的隐藏层维度
 
         self.num_actions = None
         self.num_states = None
@@ -49,11 +45,8 @@ class Config:
 class A2CBase(nn.Module):
     def __init__(
         self,
-        input_dim,
         input_len,
         hidden_dim=256,
-        num_heads=4,
-        num_layers=2,
     ):
         super().__init__()
         self.net = nn.Sequential(
@@ -73,65 +66,14 @@ class A2CBase(nn.Module):
         return self.net(x)
 
 
-# class A2CBase(nn.Module):
-#     def __init__(
-#         self,
-#         input_dim,
-#         input_len,
-#         hidden_dim=256,
-#         num_heads=4,
-#         num_layers=2,
-#     ):
-#         super().__init__()
-#         self.emb = nn.Embedding(input_dim + 2, hidden_dim)
-#         self.pos_emb = nn.Parameter(torch.randn(1, input_len + 1, hidden_dim) * 0.1)
-#         self.encoder = nn.TransformerEncoder(
-#             nn.TransformerEncoderLayer(
-#                 d_model=hidden_dim,
-#                 nhead=num_heads,
-#                 dim_feedforward=hidden_dim * 4,
-#                 dropout=0.0,
-#             ),
-#             num_layers=num_layers,
-#         )
-#         self.next_net = nn.Sequential(
-#             nn.Linear(hidden_dim, hidden_dim),
-#             nn.Tanh(),
-#         )
-
-#     def forward(self, x: torch.Tensor):
-#         x = x.long() + 1
-#         x = torch.cat(
-#             [
-#                 torch.zeros(x.shape[0], 1, dtype=torch.long, device=x.device),
-#                 x,
-#             ],
-#             dim=1,
-#         )
-#         x = self.emb(x) + self.pos_emb
-#         x = self.encoder(x.permute(1, 0, 2)).permute(1, 0, 2)
-#         x = x[:, 0, :]
-#         x = self.next_net(x)
-#         return x
-
-
 class ActorSoftmax(A2CBase):
     def __init__(
         self,
-        input_dim,
         input_len,
         output_dim,
         hidden_dim=256,
-        num_heads=4,
-        num_layers=2,
     ):
-        super().__init__(
-            input_dim,
-            input_len,
-            hidden_dim=hidden_dim,
-            num_heads=num_heads,
-            num_layers=num_layers,
-        )
+        super().__init__(input_len, hidden_dim=hidden_dim)
         self.postprocess = nn.Sequential(
             nn.Linear(hidden_dim, output_dim),
         )
@@ -144,14 +86,8 @@ class ActorSoftmax(A2CBase):
 
 
 class Critic(A2CBase):
-    def __init__(self, input_dim, input_len, hidden_dim=256, num_heads=4, num_layers=2):
-        super().__init__(
-            input_dim,
-            input_len,
-            hidden_dim=hidden_dim,
-            num_heads=num_heads,
-            num_layers=num_layers,
-        )
+    def __init__(self, input_len, hidden_dim=256):
+        super().__init__(input_len, hidden_dim=hidden_dim)
         self.postprocess = nn.Sequential(
             nn.Linear(hidden_dim, 1),
         )
@@ -195,19 +131,13 @@ class Agent:
         self.num_actions = cfg.num_actions
         self.random_ratio = cfg.random_ratio
         self.actor = ActorSoftmax(
-            cfg.input_dim,
             cfg.num_states,
             cfg.num_actions,
             hidden_dim=cfg.actor_hidden_dim,
-            num_heads=cfg.actor_num_heads,
-            num_layers=cfg.actor_num_layers,
         ).to(self.device)
         self.critic = Critic(
-            cfg.input_dim,
             cfg.num_states,
             hidden_dim=cfg.critic_hidden_dim,
-            num_heads=cfg.critic_num_heads,
-            num_layers=cfg.critic_num_layers,
         ).to(self.device)
         self.actor_optimizer = torch.optim.Adam(
             self.actor.parameters(), lr=cfg.actor_lr

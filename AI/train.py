@@ -39,7 +39,7 @@ def human_run(agent: Agent):
 if __name__ == '__main__':
     cfg = Config()
     cfg.max_steps = 2**13 + 20
-    max_power = 14
+    max_power = 10
     start_power = 1
     power_init_range = 1
     size = 4
@@ -56,7 +56,7 @@ if __name__ == '__main__':
             start_power=start_power,
             power_init_range=power_init_range,
         ),
-        2 ** 11,
+        2 ** 8,
     )
     # env = ParallelEnviroment(gym.make('LunarLander-v2'), 8)
     cfg.num_states = env.num_states

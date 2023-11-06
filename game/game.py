@@ -75,6 +75,14 @@ class Game:
         sing_player_page.show(window)
         pygame.display.flip()
         while True:
+            
+            if sing_player_page.floating_on():
+                sing_player_page.update(
+                    data=my_chessboard.get_board(),
+                    score=my_chessboard.score*100000+my_chessboard.prizescore,
+                    step=my_chessboard.get_step(),
+                    item_bag=my_item_bag.get_item_bag(),
+                ) 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()

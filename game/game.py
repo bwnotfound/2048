@@ -6,6 +6,7 @@ import numpy as np
 
 from .ui import windows
 from .core import *
+from .common import TimeCounter
 
 
 class Game:
@@ -196,45 +197,47 @@ class Game:
                                 chessboard2.score = chessboard2.calc_score()
 
                 elif event.type == pygame.KEYDOWN:
-                    keydown_str = multi_player_page.keydown(event)
-                    for key in keydown_str:
-                        if key in ['1-up', '1-down','1-right','1-left']:
-                            if key == '1-up':
-                                chessboard1.board, _, _ = chessboard1.up()
-                            if key == '1-down':
-                                chessboard1.board, _, _ = chessboard1.down()
-                            if key == '1-right':
-                                chessboard1.board, _, _ = chessboard1.right()
-                            if key == '1-left':
-                                chessboard1.board, _, _ = chessboard1.left()
-                            chessboard1.add_new_num()
-                            state = chessboard1.game_state_check()
-                            if state:
-                                return 'menu'
-                            ##TODO 还要写输赢的画面
-                            ### 临时生成道具，到时候删
-                            if chessboard1.get_step() % 3 == 0:
-                                item_bag1.add_tool(random.randint(1, 12))
-                            ###
+                    with TimeCounter("keydown"):
+                        keydown_str = multi_player_page.keydown(event)
+                        for key in keydown_str:
+                            if key in ['1-up', '1-down','1-right','1-left']:
+                                
+                                if key == '1-up':
+                                    chessboard1.board, _, _ = chessboard1.up()
+                                if key == '1-down':
+                                    chessboard1.board, _, _ = chessboard1.down()
+                                if key == '1-right':
+                                    chessboard1.board, _, _ = chessboard1.right()
+                                if key == '1-left':
+                                    chessboard1.board, _, _ = chessboard1.left()
+                                chessboard1.add_new_num()
+                                state = chessboard1.game_state_check()
+                                if state:
+                                    return 'menu'
+                                ##TODO 还要写输赢的画面
+                                ### 临时生成道具，到时候删
+                                if chessboard1.get_step() % 3 == 0:
+                                    item_bag1.add_tool(random.randint(1, 12))
+                                ###
                         
-                        if key in ['2-up', '2-down','2-right','2-left']:
-                            if key == '2-up':
-                                chessboard2.board, _, _ = chessboard2.up()
-                            if key == '2-down':
-                                chessboard2.board, _, _ = chessboard2.down()
-                            if key == '2-right':
-                                chessboard2.board, _, _ = chessboard2.right()
-                            if key == '2-left':
-                                chessboard2.board, _, _ = chessboard2.left()
-                            chessboard2.add_new_num()
-                            state = chessboard2.game_state_check()
-                            if state:
-                                return 'menu'
-                            ##TODO 还要写输赢的画面
-                            ### 临时生成道具，到时候删
-                            if chessboard2.get_step() % 3 == 0:
-                                item_bag2.add_tool(random.randint(1, 12))
-                            ###
+                            if key in ['2-up', '2-down','2-right','2-left']:
+                                if key == '2-up':
+                                    chessboard2.board, _, _ = chessboard2.up()
+                                if key == '2-down':
+                                    chessboard2.board, _, _ = chessboard2.down()
+                                if key == '2-right':
+                                    chessboard2.board, _, _ = chessboard2.right()
+                                if key == '2-left':
+                                    chessboard2.board, _, _ = chessboard2.left()
+                                chessboard2.add_new_num()
+                                state = chessboard2.game_state_check()
+                                if state:
+                                    return 'menu'
+                                ##TODO 还要写输赢的画面
+                                ### 临时生成道具，到时候删
+                                if chessboard2.get_step() % 3 == 0:
+                                    item_bag2.add_tool(random.randint(1, 12))
+                                ###
                 multi_player_page.update(
                     data=chessboard1.get_board(),
                     score=chessboard1.get_total_score(),

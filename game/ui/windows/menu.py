@@ -48,8 +48,19 @@ class Menu:
             font_size=100,
             font=menu_font,
         )
-        self.setting_btn = Button(
+        self.classic_btn = Button(
             (window_width // 2, window_height * 11 // 16),
+            'classic',
+            font_color=(
+                r + random.randint(10, 50),
+                g + random.randint(20, 50),
+                b + random.randint(20, 50),
+            ),
+            font_size=100,
+            font=menu_font,
+        )
+        self.setting_btn = Button(
+            (window_width // 2, window_height * 14 // 16),
             'setting',
             font_color=(
                 r + random.randint(10, 50),
@@ -60,7 +71,7 @@ class Menu:
             font=menu_font,
         )
         self.show_list = ComponentGroup(
-            [self.menu_title, self.start_btn, self.multiplayer_btn, self.setting_btn]
+            [self.menu_title, self.start_btn, self.multiplayer_btn, self.setting_btn, self.classic_btn]
         )
         if background_img is not None:
             if not os.path.exists(background_img):

@@ -33,7 +33,6 @@ cpdef list res_empty_element_list(int size, int[:, :] board):
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
 cpdef int move_board(int dx, int dy, int size, int[:,:]board):
-    cdef float reward = -2.0
     cdef int block_list_len
     cdef int d, i, j, r
     cdef list block_list
@@ -89,13 +88,29 @@ cpdef int move_board(int dx, int dy, int size, int[:,:]board):
                     board[j, i] = block_list[j]
                 else:
                     board[size - 1 - j, i] = block_list[j]
-    cdef int empty_num = 0
-    for i in range(size):
-        for j in range(size):
-            if board[i, j] == 0:
-                empty_num += 1
-    cdef float ratio = empty_num / (size * size)
+    # cdef int empty_num = 0
+    # for i in range(size):
+    #     for j in range(size):
+    #         if board[i, j] == 0:
+    #             empty_num += 1
+    # cdef float ratio = empty_num / (size * size)
+    """
+        记bn=2**n，an为合成bn产生的价值，rn为合成出bn所产生的总价值
+        那么为了适应step的2指数增长，由于不考虑an的时候有r(n+1) = 2*rn，所以我们令r(n+1) = 2*(2*rn)
+        首先通过简单计算得知rn = sigma(i,[2,n])(ai*2**(n-i))
+        然后通过计算得知，假设a2=c，那么有a3=c*3,an=a3*5**(n-3) [n>=4]
+        因此，可以设计奖励函数确保总体增长的线性性
+    """
+    cdef float reward = 0.0
+    cdef float c = 0.01
     for r in reward_list:
-        reward += 2.0 ** r + ratio * r * 0.2
+        if r == 2:
+            reward += c
+        elif r >= 3:
+            reward += c*3*5**(r-3)
+        else:
+            raise Exception(f"{r} must >= 2")
+        reward += 2.0 ** r
+    # reward += (ratio - 0.5) * 0.2
     
     return int(reward)

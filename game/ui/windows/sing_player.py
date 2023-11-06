@@ -2,7 +2,7 @@ import pygame
 import numpy as np
 from ..tools import Text, ComponentGroup, Button, Chessboard
 from ..tools.common import load_image
-from ..tools import item_bag
+from ..tools import Item_bag
 from .window import Window
 
 class Sing_player(Window):
@@ -54,7 +54,7 @@ class Sing_player(Window):
             background_color=(255, 255, 255, 100),
         )
         self.item_bag_num = np.zeros(12,int)
-        self.item_bag=item_bag((self.window_width*9//24,self.window_height*2//5),start_pos=(self.window_width*4//7,self.window_height*6//16))
+        self.item_bag=Item_bag((self.window_width*9//24,self.window_height*2//5),start_pos=(self.window_width*4//7,self.window_height*6//16))
 
         self.show_list = ComponentGroup(
             [
@@ -99,7 +99,9 @@ class Sing_player(Window):
         self.item_bag_num=item_bag
         self.item_bag.update(self.item_bag_num)
               
-        
+    def floating_on(self):
+        mouse_pos = pygame.mouse.get_pos()
+        return self.item_bag.floating_on(mouse_pos)
 
     def keydown(self, event: pygame.event):
         if event.key in [pygame.K_w, pygame.K_UP]:

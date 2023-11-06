@@ -19,13 +19,14 @@ class Config:
         self.mode = "train"  # train or test
         self.seed = 1  # 随机种子
         self.device = "cuda"  # device to use
-        self.train_eps = 1000000  # 训练的回合数
+        self.train_eps = 10000000  # 训练的回合数
         self.max_steps = 1000  # 每个回合的最大步数
         self.eval_eps = 1024  # 评估的回合数
         self.eval_per_episode = 10000  # 评估的频率
-        self.batch_size = 2**16
-        self.mini_batch_size = 2**12
+        self.batch_size = 2**19
+        self.mini_batch_size = 2**15
 
+        self.random_ratio = 0.03  # 随机动作的概率
         self.gamma = 0.99  # 折扣因子
         self.lamda = 0.98  # GAE参数
         self.k_epochs = 5  # 更新策略网络的次数
@@ -190,6 +191,9 @@ class Agent:
     def __init__(self, cfg: Config) -> None:
         self.gamma = cfg.gamma
         self.device = torch.device(cfg.device)
+        self.num_states = cfg.num_states
+        self.num_actions = cfg.num_actions
+        self.random_ratio = cfg.random_ratio
         self.actor = ActorSoftmax(
             cfg.input_dim,
             cfg.num_states,
@@ -237,6 +241,15 @@ class Agent:
         )
         if len(state.shape) == 1:
             state.unsqueeze_(0)
+        if np.random.random() < self.random_ratio:
+            action = self.random_action(state.shape[0])
+            probs = self.actor(state)
+            dist = Categorical(probs)
+            action_tensor = torch.tensor(action, device=self.device, dtype=torch.long)
+            return (
+                action,
+                dist.log_prob(action_tensor).detach().cpu().numpy(),
+            )
         probs = self.actor(state)
         dist = Categorical(probs)
         action = dist.sample()
@@ -244,6 +257,10 @@ class Agent:
             action.detach().cpu().numpy(),
             dist.log_prob(action).detach().cpu().numpy(),
         )
+
+    @torch.no_grad()
+    def random_action(self, batch_size):
+        return np.random.randint(0, self.num_actions, size=(batch_size,))
 
     def update(self, writer, i_step):
         if len(self.memory) < self.batch_size:
@@ -345,9 +362,7 @@ class Agent:
             t_bar.update()
         writer.add_scalar("Train/edge_ratio", edge_ratio, i_step)
         writer.add_scalar("Train/critic_loss", critic_loss.item(), i_step)
-        writer.add_scalar(
-            "Train/entropy_loss", entropy_loss.item(), i_step
-        )
+        writer.add_scalar("Train/entropy_loss", entropy_loss.item(), i_step)
         t_bar.close()
 
 

@@ -14,13 +14,14 @@ class TaskList:
         self.num_1 = 0
         self.num_4 = 0
         self.num_5 = 0
+        self.num_6 = 0
         self.give_prize = 0
         self.give_punish = 0
 
     def update_board(self, newboard):   # UI中需要每回合执行一次
         self.board = newboard.copy()  # 更新当前的棋盘判定状态
 
-    def get_task(self):  # 得到任务
+    def receive_task(self):  # 得到任务
         if self.status == 1:
             print("目前有尚未完成的任务")
             return
@@ -28,7 +29,8 @@ class TaskList:
         self.content, self.id, self.time = self.get_content()
         if self.id == 0:
             self.status = 0
-        # ui要显示任务的内容
+
+        #ui要显示任务的内容
         print("你获得了如下任务:")
         print(self.content)
 
@@ -42,6 +44,7 @@ class TaskList:
             now = np.size(np.nonzero(self.board))   # 目前的剩余数字
             if self.num_1 + 3 - (self.time-1) - now >= 4:
                 flag = 1
+                self.num_1 = 0
         elif self.id == 2:
             if self.board[0][self.size-1] == 8:
                 flag = 1
@@ -52,11 +55,19 @@ class TaskList:
             now = np.size(np.nonzero(self.board))
             if self.num_4 + 1 - (self.time-1) - now >= 1:
                 flag = 1
+                self.num_4 = 0
         elif self.id == 5:
             if self.time == 1:
                 now = np.size(np.nonzero(self.board))
                 if now == self.num_5 + 2:
                     flag = 1
+                    self.num_5 = 0
+        elif self.id == 6:
+            now = np.max(self.board)
+            if now > self.num_6:
+                flag = 1
+                self.num_6 = 0
+
 
         ###
         # 有任务
@@ -94,12 +105,32 @@ class TaskList:
             content = "1回合内，完成1次以上的消去过程"
             self.num_4 =  np.size(np.nonzero(self.board))
             t = 1
-
         elif a == 5:
             content = "2回合内，不进行任何消去操作"
             self.num_5 = np.size(np.nonzero(self.board))
             t = 2
+        elif a == 6:
+            content = "3回合内，改变场上目前的最大数字"
+            self.num_6 = np.max(self.board)
+            t = 3
         else:
             a = 0
             content = "目前你没有触发任何任务"
-        return content,a,t
+        return content, a, t
+
+    def give_up_task(self):
+        if self.status == 0:
+            print("你现在没有任何任务")
+            return
+        else:
+            self.status = 0
+            self.id = 0
+            self.content = ""
+            self.time = 0
+            print("你选择放弃任务")
+            self.give_punish = 1
+            return
+
+    def get_task(self):   # 获取当前任务状态
+        return self.id, self.content
+

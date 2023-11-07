@@ -34,7 +34,7 @@ class Sing_player(Window):
         self.step_text = Text(
             (window_width * 3 // 4, window_height * 5 // 16), self.step_str,font_color=(150,200,165),
         )
-        size=config['window']['sing_player']['chessboard_size']
+        size=config['window']['chessboard_size']
         self.data = [[0 for _ in range(size)] for _ in range(size)]
         self.chess = Chessboard(
             (window_width *8// 27, window_height * 19 // 32),

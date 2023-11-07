@@ -19,7 +19,7 @@ class Multi_player(Window):
         self.step = 0
         self.background_color=background_color
         
-        size=config['window']['sing_player']['chessboard_size']
+        size=config['window']['chessboard_size']
         self.data = [[0 for _ in range(size)] for _ in range(size)]
 
         self.another_score = 0
@@ -94,9 +94,8 @@ class Multi_player(Window):
         
         ##道具还没写
         self.show_list.update(window, background_img=self.background_img)
-        with TimeCounter("道具渲染"):
-            window.blit(self.item_bag.get_surface(),self.item_bag.start_pos)
-            window.blit(self.another_item_bag.get_surface(),self.another_item_bag.start_pos)
+        window.blit(self.item_bag.get_surface(),self.item_bag.start_pos)
+        window.blit(self.another_item_bag.get_surface(),self.another_item_bag.start_pos)
 
     def onclick(self,mouse_pos=(int,int)):
         return [part.get_text() for part in self.show_list.onclick(mouse_pos)]

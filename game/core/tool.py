@@ -1,4 +1,6 @@
 import numpy as np
+
+
 class ToolsBag:
     def __init__(self, size):
         self.size = size
@@ -21,6 +23,18 @@ class ToolsBag:
         for i in range(index, self.bag.size - 1):
             self.bag[i] = self.bag[i + 1]
         self.bag[self.bag.size - 1] = 0
+        return self.bag
+
+    def clear_same_tool(self):  # 清理背包中重复的道具，每回合调用
+        unique_arr = np.unique(self.bag)
+        result = []
+        for i in range(len(self.bag)):
+            if self.bag[i] in unique_arr:
+                result.append(self.bag[i])
+                unique_arr = np.delete(unique_arr,
+                                       np.where(unique_arr == self.bag[i]))
+        for i in range(len(self.bag)):
+            self.bag[i] = result[i]
         return self.bag
 
     def get_item_bag(self):

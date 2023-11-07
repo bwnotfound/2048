@@ -110,7 +110,6 @@ class Item_bag(abstract_onclick_comp):
                     )
             if self.last_mouse_pos == mouse_pos:
                 self.floating_time += 1
-                print(self.floating_time)
                 if self.floating_time >= 120:
                     return True
             else:

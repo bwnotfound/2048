@@ -27,6 +27,8 @@ class Game:
                 ret = self._sing_player_start(window)
             elif self.now_page == 'multi_player':
                 ret = self._multi_player_page(window)
+            elif self.now_page =='setting':
+                ret = self._setting_page(window)
 
             if ret in statu_set:
                 self.now_page = ret
@@ -63,7 +65,7 @@ class Game:
             config=self.config,
         )
         my_chessboard = chessboard.ChessBoard(
-            self.config['window']['sing_player']['chessboard_size'],
+            self.config['window']['chessboard_size'],
         )
         my_chessboard.score = my_chessboard.calc_score()
         my_item_bag = tool.ToolsBag(12)
@@ -103,24 +105,25 @@ class Game:
 
                 elif event.type == pygame.KEYDOWN:
                     keydown_str = sing_player_page.keydown(event)
-                    if keydown_str == 'up':
-                        my_chessboard.board, _, _ = my_chessboard.up()
-                    if keydown_str == 'down':
-                        my_chessboard.board, _, _ = my_chessboard.down()
-                    if keydown_str == 'right':
-                        my_chessboard.board, _, _ = my_chessboard.right()
-                    if keydown_str == 'left':
-                        my_chessboard.board, _, _ = my_chessboard.left()
-                    my_chessboard.add_new_num()
+                    if keydown_str  in ['up','down','right','left']:
+                        if keydown_str == 'up':
+                            my_chessboard.board, _, _ = my_chessboard.up()
+                        if keydown_str == 'down':
+                            my_chessboard.board, _, _ = my_chessboard.down()
+                        if keydown_str == 'right':
+                            my_chessboard.board, _, _ = my_chessboard.right()
+                        if keydown_str == 'left':
+                            my_chessboard.board, _, _ = my_chessboard.left()
+                        my_chessboard.add_new_num()
 
-                    state = my_chessboard.game_state_check()
-                    if state:
-                        return 'menu'
-                    ##TODO 还要写输赢的画面
-                    ### 临时生成道具，到时候删
-                    if my_chessboard.get_step() % 3 == 0:
-                        my_item_bag.add_tool(random.randint(1, 12))
-                    ###
+                        state = my_chessboard.game_state_check()
+                        if state:
+                            return 'menu'
+                        ##TODO 还要写输赢的画面
+                        ### 临时生成道具，到时候删
+                        if my_chessboard.get_step() % 3 == 0:
+                            my_item_bag.add_tool(random.randint(1, 12))
+                        ###
 
                 sing_player_page.update(
                     data=my_chessboard.get_board(),
@@ -135,16 +138,12 @@ class Game:
             pygame.display.flip()
 
     def _multi_player_page(self, window: pygame.Surface):
-        window = pygame.display.set_mode(
-            (self.config['window']['width'], self.config['window']['height'])
-        )
-        pygame.init()
         multi_player_page = windows.Multi_player(self.config)
         chessboard1 = chessboard.ChessBoard(
-            self.config['window']['sing_player']['chessboard_size'],
+            self.config['window']['chessboard_size'],
         )
         chessboard2 = chessboard.ChessBoard(
-            self.config['window']['sing_player']['chessboard_size'],
+            self.config['window']['chessboard_size'],
         )
         chessboard1.score = chessboard1.calc_score()
         item_bag1 = tool.ToolsBag(12)
@@ -163,17 +162,6 @@ class Game:
         multi_player_page.show(window)
         pygame.display.flip()
         while True:
-            # if multi_player_page.floating_on():
-            #     multi_player_page.update(
-            #         data=chessboard1.get_board(),
-            #         score=chessboard1.get_total_score(),
-            #         step=chessboard1.get_step(),
-            #         another_data=chessboard2.get_board(),
-            #         another_score=chessboard2.get_total_score(),
-            #         another_step=chessboard2.get_step(),
-            #         item_bag_num=item_bag1.get_item_bag(),
-            #         another_item_bag_num=item_bag2.get_item_bag(),
-            #     )
             for event in pygame.event.get():
                 mouse_pos=pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
@@ -253,3 +241,13 @@ class Game:
             multi_player_page.show(window)
 
             pygame.display.flip()
+            
+    def _setting_page(self,window:pygame):
+        setting_page = windows.Setting(self.config)
+        setting_page.show(window)
+        pygame.display.flip()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()

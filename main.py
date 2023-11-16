@@ -1,7 +1,7 @@
 import toml
 from game import Game
 if __name__ == '__main__':
-    config = toml.load("configs/config.toml")
-    game=Game(config)  
+    config_path="configs/config.toml"
+    game=Game(config_path)  
     game.start() 
     

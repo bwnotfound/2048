@@ -1,9 +1,9 @@
 import pygame
 
-from .common import get_font
+from .common import get_font,abstract_show_comp
 
 
-class Text:
+class Text(abstract_show_comp):
     def __init__(
         self,
         center,

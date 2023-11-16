@@ -1,10 +1,11 @@
 import pygame
+from .common import abstract_onclick_comp,abstract_show_comp
 
 
 class ComponentGroup:
     def __init__(self, part_list: list):
-        self.show_list = []
-        self.onclick_list = []
+        self.show_list:list[abstract_show_comp] = []
+        self.onclick_list:list[abstract_onclick_comp] = []
         for part in part_list:
             if hasattr(part, 'show'):
                 self.show_list.append(part)

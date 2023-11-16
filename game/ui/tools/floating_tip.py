@@ -1,10 +1,10 @@
 import pygame
 import time
 
-from .common import get_font
+from .common import get_font,abstract_show_comp
 
 
-class Floating_tip:
+class Floating_tip(abstract_show_comp):
     def __init__(
         self,
         floating_rect:pygame.Rect,

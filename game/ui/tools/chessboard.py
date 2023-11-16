@@ -27,7 +27,7 @@ color_dict = {
 }
 
 
-class Chessboard:
+class Chessboard():
     def __init__(
         self, center, size, row_num=4, background_color=(0, 0, 0, 0), img=None
     ):

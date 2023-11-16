@@ -7,12 +7,14 @@ import numpy as np
 from .ui import windows
 from .core import *
 from .common import TimeCounter
-
+from .net import NetManager
 
 class Game:
-    def __init__(self, config: toml):
-        self.config = config
+    def __init__(self,config_path:str):
         self.now_page = 'menu'
+        self.config_path=config_path
+        config = toml.load(config_path)
+        self.config = config
 
     def start(self):
         statu_set = ('menu', 'sing_player', 'multi_player', 'setting')
@@ -251,3 +253,19 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+                elif event.type ==pygame.MOUSEBUTTONDOWN:
+                    mouse_pos=pygame.mouse.get_pos()
+                    onclick_list,need_to_input=setting_page.onclick(mouse_pos)
+                    if setting_page.exit_button in onclick_list:
+                        return 'menu'
+                    elif setting_page.save_button in onclick_list:
+                        setting_page.save(self.config_path)
+                        return 'menu'
+                    elif need_to_input:
+                        setting_page.input_box_list.onclick(mouse_pos)
+                elif event.type ==pygame.KEYDOWN:
+                    setting_page.input_box_list.keydown(event.key)
+                setting_page.show(window)
+            pygame.display.flip()
+            
+                    

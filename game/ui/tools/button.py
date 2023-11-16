@@ -3,10 +3,10 @@ import os
 import pygame
 
 from .common import fill_rect, get_font
-from .common import abstract_onclick_comp
+from .common import abstract_onclick_comp,abstract_show_comp
 
 ##方形按钮
-class Button(pygame.sprite.Sprite,abstract_onclick_comp):
+class Button(pygame.sprite.Sprite,abstract_onclick_comp,abstract_show_comp):
     ## center:tuple[int,int] 按钮中心
     # text:str 按钮文字
     # title_size:int 文字大小

@@ -13,7 +13,7 @@ menu_font_uri = "game/ui/assets/fonts/Milky Mania.ttf"
 [window.sing_player]
 background_img_uri = "game/ui/assets/images/sing_plyaer_background.jpg"
 task_font = "game/ui/assets/fonts/zhbtt.ttf"
-goal = 2048
+goal = "20482"
 chessboard_size = 5
 
 [window.multi_player]

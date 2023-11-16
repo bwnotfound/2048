@@ -1,9 +1,9 @@
 import pygame
 import time
-from .common import abstract_onclick_comp
+from .common import abstract_onclick_comp,abstract_show_comp
 
 
-class InputBox(pygame.sprite.Sprite, abstract_onclick_comp):
+class InputBox(pygame.sprite.Sprite, abstract_onclick_comp,abstract_show_comp):
     def __init__(self, center, text=None, color=(100, 100, 100), size=60, font=None):
         self.center = center
         self.color = color
@@ -27,47 +27,39 @@ class InputBox(pygame.sprite.Sprite, abstract_onclick_comp):
         self.rect.center = self.center
         
     def show(self, window: pygame.Surface):
-        window.blit(self.text_show, self.rect)
+        window.blit(self.text_show, self.rect)  
 
     def onclick(self, mouse_pos):
         if self.in_rect(mouse_pos):
-            self.ready = True
-            self.input_text()
+            if self.ready == True:
+                return True
+            elif self.ready == False:
+                self.ready = True
+                self.text_show = self.text_font.render(self.text + self.underline, True, self.click_color)
+                return True
         else:
-            self.ready = False
-            
-    def input_text(self):
-        last_time=time.time()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos=pygame.mouse.get_pos()
-                    if not self.in_rect(mouse_pos):
-                        return
-                elif event.type == pygame.KEYDOWN:
-                    if time.time()-last_time>0.15:
-                        last_time=time.time()
-                        if event.key==pygame.K_BACKSPACE:
-                            if self.is_ready()==True:
-                                self.del_text() 
-                        elif pygame.K_0 <=event.key<=pygame.K_9:
-                            if self.is_ready()==True:
-                                self.add_text(str(event.key-pygame.K_0))
-                        elif pygame.K_PERIOD==event.key:
-                            if self.is_ready()==True:
-                                self.add_text('.')
-                        self.show()
+            if self.ready == True:
+                self.ready = False
+                self.text_show = self.text_font.render(self.text + self.underline, True, self.color)
+                return True
+            elif self.ready == False:
+                return False
+         
+    def keydown(self,key):
+        if self.ready:
+            if key==pygame.K_BACKSPACE:
+                self.del_text()
+            elif key==pygame.K_RETURN:
+                self.ready=False
+            elif key==pygame.K_ESCAPE:
+                self.ready=False
+            else:
+                self.add_text(pygame.key.name(key))
+                
+        
         
     def in_rect(self,mouse_pos):
-        if (
-            mouse_pos[0] > self.rect.x - 30
-            and mouse_pos[0] < self.rect.x + 30 + self.rect.width
-            and mouse_pos[1] > self.rect.y - 30
-            and mouse_pos[1] < self.rect.y + self.rect.height + 30
-        ):
+        if self.rect.left < mouse_pos[0] < self.rect.right and self.rect.top < mouse_pos[1] < self.rect.bottom:
             return True
         else:
             return False
@@ -102,3 +94,38 @@ class InputBox(pygame.sprite.Sprite, abstract_onclick_comp):
 
     def is_ready(self):
         return self.ready
+
+
+class Input_box_list(abstract_onclick_comp):
+    def __init__(self,input_box_list:list[InputBox]):
+        super().__init__()
+        self.input_box_list=input_box_list
+        self.has_ready=None
+        
+    def onclick(self, mouse_pos):
+        for input_box in self.input_box_list:
+            if input_box.onclick(mouse_pos):
+                self.has_ready=input_box
+                return True
+        return False
+    
+    def add_text(self,text:str):
+        if self.has_ready!=None:
+            self.has_ready.add_text(text)
+            
+    def del_text(self, del_num=1):
+        if self.has_ready!=None:
+            self.has_ready.del_text(del_num)
+            
+    def add_input_box(self,input_box:InputBox):
+        self.input_box_list.append(input_box)
+        
+    def del_input_box(self,input_box:InputBox):
+        self.input_box_list=[part for part in self.input_box_list if part!=input_box]
+        
+    def get_text(self):
+        return [part.get_text() for part in self.input_box_list]
+    
+    def keydown(self,key):
+        if self.has_ready!=None:
+            self.has_ready.keydown(key)

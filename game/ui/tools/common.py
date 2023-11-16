@@ -10,6 +10,14 @@ class abstract_onclick_comp(ABC):
     @abstractmethod
     def get_text(self):
         pass
+    
+class abstract_show_comp(ABC):
+    @abstractmethod
+    def show(self,mouse_pos):
+        pass
+    @abstractmethod
+    def get_text(self):
+        pass
 
 
 def get_font(font, font_size=20):

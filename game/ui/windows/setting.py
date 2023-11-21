@@ -86,7 +86,7 @@ class Setting(Window):
         self.config['window']['sing_player']['chessboard_size'] = self.chessboard_size
         self.config['window']['sing_player']['goal'] = int(self.goal_input_box.text)
         self.config['window']['online_player']['ip_address'] = self.online_ip_input_box.text
-        self.config['window']['online_player']['port'] = self.online_port_input_box.text
+        self.config['window']['online_player']['port'] = int(self.online_port_input_box.text)
         with open(config_path, 'w') as f:
             toml.dump(self.config, f)
         

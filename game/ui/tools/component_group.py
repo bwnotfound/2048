@@ -31,7 +31,7 @@ class ComponentGroup:
             part.show(window)
 
     def onclick(self, mouse_pos):
-        ret_list = []
+        ret_list:list[abstract_show_comp] = []
         for part in self.onclick_list:
             if part.onclick(mouse_pos):
                 print(part.get_text())

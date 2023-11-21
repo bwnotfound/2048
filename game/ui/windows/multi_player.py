@@ -126,9 +126,8 @@ class Multi_player(Window):
         self.another_step_text.set_text(f'step: {self.another_step}')
         self.item_bag_num=item_bag_num
         self.another_item_bag_num=another_item_bag_num
-        with TimeCounter("item bag"):
-            self.item_bag.update(self.item_bag_num)
-            self.another_item_bag.update(self.another_item_bag_num)
+        self.item_bag.update(self.item_bag_num)
+        self.another_item_bag.update(self.another_item_bag_num)
             
     def keydown(self, event: pygame.event):
         ret = []

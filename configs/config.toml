@@ -24,4 +24,4 @@ task_font = "game/ui/assets/fonts/zhbtt.ttf"
 background_img_uri = "game/ui/assets/images/multi_background.jpg"
 task_font = "game/ui/assets/fonts/zhbtt.ttf"
 ip_address = "127.0.0.1"
-port = "8888"
+port = 8888

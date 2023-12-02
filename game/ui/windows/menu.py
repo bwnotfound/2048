@@ -2,23 +2,30 @@ import random
 import os
 
 import pygame
-from pygame.sprite import RenderPlain
 
-from ..tools import Button, Text, Slider, InputBox, ComponentGroup, Chessboard
-from .window import Window
+# from ...main import GameManager
+from ..tools import Button, Text, ComponentGroup
+from .page import BasePage
+from ...main import GameManager
 
-class Menu:
+
+class Menu(BasePage):
     def __init__(
         self,
-        window_width=1280,
-        window_height=720,
+        game_man: GameManager,
+        rect: pygame.Rect,
         background_img=None,
         background_color=None,
         menu_font=None,
     ):
+        super().__init__()
+        self.game_man = game_man
         r = random.randrange(75, 150)
         g = random.randrange(125, 200)
         b = random.randrange(100, 175)
+        self.rect = rect
+        window_width = rect.width
+        window_height = rect.height
         self.menu_title = Text(
             (window_width // 2, window_height // 8),
             '2048',
@@ -71,7 +78,13 @@ class Menu:
             font=menu_font,
         )
         self.show_list = ComponentGroup(
-            [self.menu_title, self.start_btn, self.multiplayer_btn, self.setting_btn, self.classic_btn]
+            [
+                self.menu_title,
+                self.start_btn,
+                self.multiplayer_btn,
+                self.setting_btn,
+                self.classic_btn,
+            ]
         )
         if background_img is not None:
             if not os.path.exists(background_img):
@@ -84,9 +97,63 @@ class Menu:
         else:
             self.background_img = None
         self.background_color = background_color
+        self.pages = []
+
+    def run(self, event: pygame.event.Event):
+        from .sing_player import Sing_player
+        from .multi_player import Multi_player
+        from .setting import Setting
+
+        for page in self.pages:
+            page.run(event)
+
+        if event is None:
+            pass
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            onclick_list = self.onclick(mouse_pos)
+            if 'sing_player' in onclick_list:
+                self.add_page(
+                    Sing_player(
+                        self,
+                        window_height=self.game_man.height,
+                        window_width=self.game_man.width,
+                        config=self.game_man.config,
+                    )
+                )
+            elif 'multiplayer' in onclick_list:
+                self.add_page(Multi_player(self, self.game_man.config))
+            elif 'setting' in onclick_list:
+                self.add_page(
+                    Setting(self, self.game_man.config, self.game_man.config_path)
+                )
+
+    def close(self):
+        raise NotImplementedError
+
+    def get_page(self, page):
+        for p in self.pages:
+            if page is p:
+                return page
+        return None
+
+    def add_page(self, page):
+        if self.get_page(page) is not None:
+            return
+        self.pages.append(page)
+
+    def remove_page(self, page):
+        page = self.get_page(page)
+        if page is not None:
+            self.pages.remove(page)
 
     def show(self, window: pygame.Surface):
-        self.show_list.update(window, self.background_img, self.background_color)
+        if self.visible and len(self.pages) == 0:
+            self.show_list.update(
+                window, self.background_img, self.background_color, rect=self.rect
+            )
+        for page in self.pages:
+            page.show(window)
 
     ## 返回被点击的所有组件对应的字符串的列表
     def onclick(self, mouse_pos):

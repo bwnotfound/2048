@@ -1,11 +1,11 @@
 import pygame
-from .common import abstract_onclick_comp,abstract_show_comp
+from .common import abstract_onclick_comp, abstract_show_comp
 
 
 class ComponentGroup:
     def __init__(self, part_list: list):
-        self.show_list:list[abstract_show_comp] = []
-        self.onclick_list:list[abstract_onclick_comp] = []
+        self.show_list: list[abstract_show_comp] = []
+        self.onclick_list: list[abstract_onclick_comp] = []
         for part in part_list:
             if hasattr(part, 'show'):
                 self.show_list.append(part)
@@ -18,20 +18,27 @@ class ComponentGroup:
 
     # update相比于show,在于会更新背景，所以我为什么没有删掉show。。
     def update(
-        self, window: pygame.Surface, background_img=None, background_color=None
+        self,
+        window: pygame.Surface,
+        background_img=None,
+        background_color=None,
+        rect: pygame.Rect = None,
     ):
         r"""
-            建议background_img和background_color选其一调用,默认background_img覆盖background_color
+        建议background_img和background_color选其一调用,默认background_img覆盖background_color
         """
         if background_color is not None:
-            window.fill(background_color)
+            window.fill(background_color, rect=rect)
         if background_img is not None:
-            window.blit(background_img, (0, 0))
+            if rect is not None:
+                window.blit(background_img, (rect.x, rect.y))
+            else:
+                window.blit(background_img, (0, 0))
         for part in self.show_list:
             part.show(window)
 
     def onclick(self, mouse_pos):
-        ret_list:list[abstract_show_comp] = []
+        ret_list: list[abstract_show_comp] = []
         for part in self.onclick_list:
             if part.onclick(mouse_pos):
                 print(part.get_text())

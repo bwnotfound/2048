@@ -120,3 +120,20 @@ class Item_bag(abstract_onclick_comp):
 
     def get_surface(self):
         return self.window
+    
+    def pack_data(self):
+        return self.item_bag.tolist()
+        
+    def check_data(self, data):
+        if not (isinstance(data, list) and len(data) == 12):
+            return False
+        for i in data:
+            if not (isinstance(i, int) and i in self.item_to_png.keys()):
+                return False
+        return True
+
+    def load_data(self, data):
+        if not self.check_data(data):
+            return False
+        self.item_bag = np.array(data)
+        return True

@@ -78,10 +78,14 @@ class OnlineChoice(Window, BasePage):
             mouse_pos = pygame.mouse.get_pos()
             onclick_list = self.onclick(mouse_pos)
             if 'as_server' in onclick_list:
-                self.page_man.add_page(OnlineWaitWindow(self.page_man, True, self.config))
+                self.page_man.add_page(
+                    OnlineWaitWindow(self.page_man, True, self.config)
+                )
                 self.page_man.del_page(self)
             elif 'as_client' in onclick_list:
-                self.page_man.add_page(OnlineWaitWindow(self.page_man, False, self.config))
+                self.page_man.add_page(
+                    OnlineWaitWindow(self.page_man, False, self.config)
+                )
                 self.page_man.del_page(self)
             elif 'exit' in onclick_list:
                 while len(self.pages) > 0:
@@ -204,7 +208,7 @@ class OnlineWaitWindow(Window, BasePage):
 
     def connect_server(self, address):
         self.client_net_manager = NetManager(False, *address)
-        self.net_manager.connect(self.client_connection)
+        self.client_net_manager.connect(self.client_connection)
 
     def send(self, data):
         self.net_manager.send(data)
@@ -310,7 +314,7 @@ class _ListenThread(threading.Thread):
 
     def run(self):
         while not self.close_event.is_set():
-            recv_data, recv_address = self.net_manager.recv_broadcast()
+            recv_address, recv_data = self.net_manager.recv_broadcast()
             self.lock.acquire()
             for i, (last_time, address, data) in enumerate(self.listened_address):
                 if address[0] != address[0] or address[1] != address[1]:

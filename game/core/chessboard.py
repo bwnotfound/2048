@@ -246,8 +246,8 @@ class ChessBoard:
                 print("有一个相同类型的道具正在被使用！")
                 return
             else:
-                self.specialx = random.randint(0, self.size-1)
-                self.specialy = random.randint(0, self.size-1)
+                self.specialx = random.randint(0, self.size - 1)
+                self.specialy = random.randint(0, self.size - 1)
                 # TODO：ui界面让这个格子发光
                 self.tool_7_flag = 3
 
@@ -256,8 +256,8 @@ class ChessBoard:
                 print("无法使用该道具！")
                 return
             while 1:
-                x1 = random.randint(0, self.size-1)
-                y1 = random.randint(0, self.size-1)
+                x1 = random.randint(0, self.size - 1)
+                y1 = random.randint(0, self.size - 1)
                 if (
                     self.board[x1][y1]
                     != 0 & self.board[x1][y1]
@@ -290,8 +290,8 @@ class ChessBoard:
 
         elif num == 11:  # 道具11，功能:消除场上的某个格子上的随机数字(<=512)，将其上的分数计入奖励分
             while 1:
-                x1 = random.randint(0, self.size-1)
-                y1 = random.randint(0, self.size-1)
+                x1 = random.randint(0, self.size - 1)
+                y1 = random.randint(0, self.size - 1)
                 if self.board[x1][y1] != 0 & self.board[x1][y1] <= 256:
                     self.prizescore += self.board[x1][y1]
                     self.board[x1][y1] = 0
@@ -316,3 +316,33 @@ class ChessBoard:
 
     def get_step(self):
         return self.step
+
+    def pack_data(self):
+        data = {
+            "size": self.size,
+            "newstate": self.newstate,
+            "board": self.board.tolist(),
+            "stage": self.stage,
+            "score": self.score,
+            "prizescore": self.prizescore,
+            "tool_5_flag": self.tool_5_flag,
+            "tool_7_flag": self.tool_7_flag,
+            "tool_9_flag": self.tool_9_flag,
+            "tool_9_ifsub": self.tool_9_ifsub,
+            "tool_10_flag": self.tool_10_flag,
+            "non_zero_cnt": self.non_zero_cnt,
+            "specialx": self.specialx,
+            "specialy": self.specialy,
+            "step": self.step,
+            "goal": self.goal,
+        }
+        return data
+
+    def check_data(self, data):
+        return True
+
+    def load_data(self, data):
+        for k in data.keys():
+            if hasattr(self, k):
+                setattr(self, k, data[k])
+        self.board = np.array(self.board, dtype=int)

@@ -31,11 +31,20 @@ class ToolsBag:
         for i in range(len(self.bag)):
             if self.bag[i] in unique_arr:
                 result.append(self.bag[i])
-                unique_arr = np.delete(unique_arr,
-                                       np.where(unique_arr == self.bag[i]))
+                unique_arr = np.delete(unique_arr, np.where(unique_arr == self.bag[i]))
         for i in range(len(self.bag)):
             self.bag[i] = result[i]
         return self.bag
 
     def get_item_bag(self):
         return self.bag
+
+    def pack_data(self):
+        data = self.bag.tolist()
+        return data
+
+    def check_data(self, data):
+        return True
+
+    def load_data(self, data):
+        self.board = np.array(data, dtype=int)

@@ -44,7 +44,7 @@ class NetManager:
         if self.client is None:
             return False
         return True
-    
+
     def _pack_data(self, data):
         b_data = pickle.dumps(data)
         b_length = struct.pack("i", len(b_data))
@@ -67,10 +67,15 @@ class NetManager:
         except Exception as e:
             logging.warning("发送数据失败，异常类型：{}".format(type(e).__name__))
 
-    def recv(self):
-        if self.data_queue.empty():
-            return None
-        return self.data_queue.get()
+    def recv(self, recv_all=False):
+        if not recv_all:
+            if self.data_queue.empty():
+                return None
+            return self.data_queue.get()
+        result = []
+        while self.data_queue.qsize() > 0:
+            result.append(self.data_queue.get())
+        return result
 
     def broadcast(self, data, port=10130):
         r'''
@@ -85,12 +90,12 @@ class NetManager:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # 设置socket属性
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        data_bin = pickle.dumps(data)
+        data_bin = pickle.dumps(((self.host, self.port), data))
         # 发送广播消息
         s.sendto(data_bin, address)
         # 关闭socket
         s.close()
-    
+
     def recv_broadcast(self, port=10130):
         r'''
         return:
@@ -106,11 +111,12 @@ class NetManager:
         # 绑定本地ip地址和端口
         s.bind(address)
         # 接收消息
-        data, address = s.recvfrom(1024)
+        data, _ = s.recvfrom(1024)
         # print(' [recv form %s:%d]:%s' % (address[0], address[1], data))
         # 关闭socket
         s.close()
-        return pickle.loads(data), address
+        data = pickle.loads(data)
+        return data[0], data[1]
 
 
 class NetManagerThread(Thread):

@@ -34,29 +34,29 @@ class MultiPlayer(Window, BasePage):
             (self.window_width, self.window_height),
         )
         self.background_color = background_color
-        
-        self.score = 0
-        self.step = 0
+
+        score = 0
+        step = 0
         size = config['window']['chessboard_size']
-        self.data = [[0 for _ in range(size)] for _ in range(size)]
-        self.another_score = 0
-        self.another_step = 0
-        self.another_data = [[0 for _ in range(size)] for _ in range(size)]
+        data = [[0 for _ in range(size)] for _ in range(size)]
+        another_score = 0
+        another_step = 0
+        another_data = [[0 for _ in range(size)] for _ in range(size)]
 
         exit_str = 'surrender'
-        score_str = 'score: ' + str(self.score)
+        score_str = 'score: ' + str(score)
         self.score_text = Text(
             (self.window_width * 1 // 10, self.window_height * 19 // 27), score_str
         )
 
-        step_str = 'step: ' + str(self.step)
+        step_str = 'step: ' + str(step)
         self.step_text = Text(
             (self.window_width * 3 // 10, self.window_height * 19 // 27), step_str
         )
         self.chess = Chessboard(
             (self.window_width // 5, self.window_height // 3),
             (self.window_width * 9 // 25, self.window_height * 17 // 27),
-            len(self.data),
+            len(data),
             background_color=(181, 170, 156),
         )
 
@@ -69,12 +69,12 @@ class MultiPlayer(Window, BasePage):
             (self.window_width * 1 // 5, self.window_height * 26 // 27), exit_str
         )
 
-        another_score_str = 'score: ' + str(self.another_score)
+        another_score_str = 'score: ' + str(another_score)
         self.another_score_text = Text(
             (self.window_width * 7 // 10, self.window_height * 1 // 27),
             another_score_str,
         )
-        another_step_str = 'step: ' + str(self.another_step)
+        another_step_str = 'step: ' + str(another_step)
         self.another_step_text = Text(
             (self.window_width * 9 // 10, self.window_height * 1 // 27),
             another_step_str,
@@ -83,7 +83,7 @@ class MultiPlayer(Window, BasePage):
         self.another_chess = Chessboard(
             (self.window_width * 4 // 5, self.window_height * 2 // 3),
             (self.window_width * 9 // 25, self.window_height * 17 // 27),
-            len(self.another_data),
+            len(another_data),
             background_color=(181, 170, 156),
         )
         self.another_item_bag_num = np.zeros(12, int)
@@ -148,18 +148,12 @@ class MultiPlayer(Window, BasePage):
         item_bag_num: np.ndarray,
         another_item_bag_num: np.ndarray,
     ):
-        self.data = data
-        self.score = score
-        self.step = step
-        self.another_data = another_data
-        self.another_score = another_score
-        self.another_step = another_step
         self.chess.update(data)
-        self.score_text.set_text(f'score: {self.score}')
-        self.step_text.set_text(f'step: {self.step}')
+        self.score_text.set_text(f'score: {score}')
+        self.step_text.set_text(f'step: {step}')
         self.another_chess.update(another_data)
-        self.another_score_text.set_text(f'score: {self.another_score}')
-        self.another_step_text.set_text(f'step: {self.another_step}')
+        self.another_score_text.set_text(f'score: {another_score}')
+        self.another_step_text.set_text(f'step: {another_step}')
         self.item_bag_num = item_bag_num
         self.another_item_bag_num = another_item_bag_num
         self.item_bag.update(self.item_bag_num)
@@ -169,23 +163,24 @@ class MultiPlayer(Window, BasePage):
         ret = []
         if event.key == pygame.K_w:
             ret.append('1-up')
-        if event.key == pygame.K_UP:
-            ret.append('2-up')
+        # if event.key == pygame.K_UP:
+        #     ret.append('2-up')
         if event.key == pygame.K_a:
             ret.append('1-left')
-        if event.key == pygame.K_LEFT:
-            ret.append('2-left')
+        # if event.key == pygame.K_LEFT:
+        #     ret.append('2-left')
         if event.key == pygame.K_s:
             ret.append('1-down')
-        if event.key == pygame.K_DOWN:
-            ret.append('2-down')
+        # if event.key == pygame.K_DOWN:
+        #     ret.append('2-down')
         if event.key == pygame.K_d:
             ret.append('1-right')
-        if event.key == pygame.K_RIGHT:
-            ret.append('2-right')
+        # if event.key == pygame.K_RIGHT:
+        #     ret.append('2-right')
         return ret
 
     def run(self, event: pygame.event.Event):
+        need_synthesis = False
         if event is None:
             pass
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -193,8 +188,10 @@ class MultiPlayer(Window, BasePage):
             onclick_list = self.onclick(mouse_pos)
             if 'surrender' in onclick_list:
                 self.page_man.del_page(self)
+                return
             elif onclick_list != []:
                 if onclick_list[0] in self.item_possible_list:
+                    need_synthesis = True
                     item_num = onclick_list[0]
                     item_num1 = self.item_bag.onclick(mouse_pos)
                     if item_num == item_num1:
@@ -206,70 +203,60 @@ class MultiPlayer(Window, BasePage):
                         self.item_bag2.use_tool(item_num)
                         self.chessboard2.score = self.chessboard2.calc_score()
         elif event.type == pygame.KEYDOWN:
-            with TimeCounter("keydown"):
-                keydown_str = self.keydown(event)
-                for key in keydown_str:
-                    if key in ['1-up', '1-down', '1-right', '1-left']:
-                        if key == '1-up':
-                            self.chessboard1.board, _, _ = self.chessboard1.up()
-                        if key == '1-down':
-                            (
-                                self.chessboard1.board,
-                                _,
-                                _,
-                            ) = self.chessboard1.down()
-                        if key == '1-right':
-                            (
-                                self.chessboard1.board,
-                                _,
-                                _,
-                            ) = self.chessboard1.right()
-                        if key == '1-left':
-                            (
-                                self.chessboard1.board,
-                                _,
-                                _,
-                            ) = self.chessboard1.left()
-                        self.chessboard1.add_new_num()
-                        state = self.chessboard1.game_state_check()
-                        if state:
-                            self.page_man.del_page(self)
-                        ##TODO 还要写输赢的画面
-                        ### 临时生成道具，到时候删
-                        if self.chessboard1.get_step() % 3 == 0:
-                            self.item_bag1.add_tool(random.randint(1, 12))
-                        ###
+            # with TimeCounter("keydown"):
+            keydown_str = self.keydown(event)
+            for key in keydown_str:
+                if key in ['1-up', '1-down', '1-right', '1-left']:
+                    need_synthesis = True
+                    if key == '1-up':
+                        self.chessboard1.board, _, _ = self.chessboard1.up()
+                    if key == '1-down':
+                        (self.chessboard1.board, _, _) = self.chessboard1.down()
+                    if key == '1-right':
+                        (self.chessboard1.board, _, _) = self.chessboard1.right()
+                    if key == '1-left':
+                        (self.chessboard1.board, _, _) = self.chessboard1.left()
+                    self.chessboard1.add_new_num()
+                    state = self.chessboard1.game_state_check()
+                    if state:
+                        self.page_man.del_page(self)
+                        return
+                    ##TODO 还要写输赢的画面
+                    ### 临时生成道具，到时候删
+                    if self.chessboard1.get_step() % 3 == 0:
+                        self.item_bag1.add_tool(random.randint(1, 12))
+                    ###
 
-                    if key in ['2-up', '2-down', '2-right', '2-left']:
-                        if key == '2-up':
-                            self.chessboard2.board, _, _ = self.chessboard2.up()
-                        if key == '2-down':
-                            (
-                                self.chessboard2.board,
-                                _,
-                                _,
-                            ) = self.chessboard2.down()
-                        if key == '2-right':
-                            (
-                                self.chessboard2.board,
-                                _,
-                                _,
-                            ) = self.chessboard2.right()
-                        if key == '2-left':
-                            (
-                                self.chessboard2.board,
-                                _,
-                                _,
-                            ) = self.chessboard2.left()
-                        self.chessboard2.add_new_num()
-                        state = self.chessboard2.game_state_check()
-                        if state:
-                            self.page_man.del_page(self)
-                        ##TODO 还要写输赢的画面
-                        ### 临时生成道具，到时候删
-                        if self.chessboard2.get_step() % 3 == 0:
-                            self.item_bag2.add_tool(random.randint(1, 12))
-                        ###
+                # if key in ['2-up', '2-down', '2-right', '2-left']:
+                #     if key == '2-up':
+                #         self.chessboard2.board, _, _ = self.chessboard2.up()
+                #     if key == '2-down':
+                #         (
+                #             self.chessboard2.board,
+                #             _,
+                #             _,
+                #         ) = self.chessboard2.down()
+                #     if key == '2-right':
+                #         (
+                #             self.chessboard2.board,
+                #             _,
+                #             _,
+                #         ) = self.chessboard2.right()
+                #     if key == '2-left':
+                #         (
+                #             self.chessboard2.board,
+                #             _,
+                #             _,
+                #         ) = self.chessboard2.left()
+                #     self.chessboard2.add_new_num()
+                #     state = self.chessboard2.game_state_check()
+                #     if state:
+                #         self.page_man.del_page(self)
+                #     ##TODO 还要写输赢的画面
+                #     ### 临时生成道具，到时候删
+                #     if self.chessboard2.get_step() % 3 == 0:
+                #         self.item_bag2.add_tool(random.randint(1, 12))
+                #     ###
         self.update(
             data=self.chessboard1.get_board(),
             score=self.chessboard1.get_total_score(),
@@ -280,6 +267,15 @@ class MultiPlayer(Window, BasePage):
             item_bag_num=self.item_bag1.get_item_bag(),
             another_item_bag_num=self.item_bag2.get_item_bag(),
         )
+        if need_synthesis:
+            self.net_manager.send(self.chessboard1.pack_data())
+        data = self.net_manager.recv(recv_all=True)
+        if len(data) > 0:
+            data = data[-1]
+        else:
+            data = None
+        if data is not None:
+            self.chessboard2.load_data(data)
         ##
 
 

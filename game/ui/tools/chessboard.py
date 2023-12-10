@@ -1,9 +1,6 @@
 from .text import Text
 import pygame
 import os
-from concurrent.futures import as_completed, ThreadPoolExecutor
-
-from ...common import TimeCounter
 
 color_dict = {
     3: (200, 55, 65),
@@ -37,7 +34,6 @@ class Chessboard():
         self.size = size
         self.row_num = row_num
         self.background_color = background_color
-        self.board = [[0 for _ in range(row_num)] for _ in range(row_num)]
         self.img = img
         self.rect = pygame.Rect(
             self.center[0] - self.size[0] // 2,
@@ -77,6 +73,8 @@ class Chessboard():
             if k != 0:
                 show_text.show(surf)
             self.text_dict[k] = surf
+            
+        self.board = [[0 for _ in range(row_num)] for _ in range(row_num)]
 
     def _show_part(self, center, value, width, height, window: pygame.Surface):
         window.blit(

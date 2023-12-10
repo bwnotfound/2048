@@ -292,7 +292,7 @@ class _BroadcastThread(threading.Thread):
 
     def run(self):
         while not self.close_event.is_set():
-            self.net_manager.broadcast('Message from server')
+            self.net_manager.broadcast('Message from server{}'.format(int(time.time())))
             time.sleep(0.5)
 
 
@@ -314,7 +314,13 @@ class _ListenThread(threading.Thread):
 
     def run(self):
         while not self.close_event.is_set():
-            recv_address, recv_data = self.net_manager.recv_broadcast()
+            while True:
+                for port in self.net_manager.avalible_port_list:
+                    recv_address, recv_data = self.net_manager.recv_broadcast(port=port, block=False)
+                    if recv_address is not None:
+                        break
+                if recv_address is not None:
+                    break
             self.lock.acquire()
             for i, (last_time, address, data) in enumerate(self.listened_address):
                 if address[0] != address[0] or address[1] != address[1]:

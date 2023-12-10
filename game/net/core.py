@@ -12,6 +12,7 @@ class NetManager:
         self.as_server = as_server
         self.host = host if host is not None else socket.gethostname()
         self.port = port
+        self.avalible_port_list = [12352, 23354, 30247, 40003]
         self._listen_thread = None
         self._stop_event = Event()
         self.client: socket.socket = None
@@ -84,19 +85,21 @@ class NetManager:
             0: 广播成功
             1: 连接未建立
         '''
-        # 255.255.255.255表示向任何网段发送广播消息
-        address = ('255.255.255.255', port)
+
         # 创建流式socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # 设置socket属性
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         data_bin = pickle.dumps(((self.host, self.port), data))
         # 发送广播消息
-        s.sendto(data_bin, address)
+        # 255.255.255.255表示向任何网段发送广播消息
+        for port in self.avalible_port_list:
+            address = ('255.255.255.255', port)
+            s.sendto(data_bin, address)
         # 关闭socket
         s.close()
 
-    def recv_broadcast(self, port=10130):
+    def recv_broadcast(self, port=10130, block=True):
         r'''
         return:
             None: 未收到广播消息
@@ -110,8 +113,15 @@ class NetManager:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # 绑定本地ip地址和端口
         s.bind(address)
+        s.setblocking(block)
+        s.settimeout(0.05)
         # 接收消息
-        data, _ = s.recvfrom(1024)
+        try:
+            data, _ = s.recvfrom(1024)
+        except BlockingIOError:
+            return None, None
+        except TimeoutError:
+            return None, None
         # print(' [recv form %s:%d]:%s' % (address[0], address[1], data))
         # 关闭socket
         s.close()

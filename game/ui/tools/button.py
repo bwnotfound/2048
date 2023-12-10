@@ -54,6 +54,7 @@ class Button(pygame.sprite.Sprite, abstract_onclick_comp, abstract_show_comp):
             *[center[i] - self.size[i] / 2 for i in range(2)], *self.size
         )
         self._draw()
+        self.visible = True
 
     def _draw(self):
         self.image = pygame.Surface(self.size).convert_alpha()

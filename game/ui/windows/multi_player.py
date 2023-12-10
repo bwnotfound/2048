@@ -6,21 +6,26 @@ import pygame
 from ..tools import Text, ComponentGroup, Button, Chessboard, Item_bag
 from ..tools.common import load_image
 from .window import Window
-from ...main import GameManager
 from ...common import TimeCounter
 from ...core import chessboard, tool
 from .page import BasePage
+from .page_manager import PageManager
+from ...net import NetManager
 
 
-class Multi_player(Window, BasePage):
+class MultiPlayer(Window, BasePage):
     def __init__(
         self,
-        parent: BasePage,
+        page_man: PageManager,
+        as_server,
+        net_manager: NetManager,
         config,
         background_color=(0, 0, 0),
     ):
         super(BasePage, self).__init__()
-        self.parent = parent
+        self.page_man = page_man
+        self.as_server = as_server
+        self.net_manager = net_manager
         self.config = config
         self.window_width = self.config['window']['width']
         self.window_height = self.config['window']['height']
@@ -28,13 +33,12 @@ class Multi_player(Window, BasePage):
             config['window']['multi_player']['background_img_uri'],
             (self.window_width, self.window_height),
         )
+        self.background_color = background_color
+        
         self.score = 0
         self.step = 0
-        self.background_color = background_color
-
         size = config['window']['chessboard_size']
         self.data = [[0 for _ in range(size)] for _ in range(size)]
-
         self.another_score = 0
         self.another_step = 0
         self.another_data = [[0 for _ in range(size)] for _ in range(size)]
@@ -188,7 +192,7 @@ class Multi_player(Window, BasePage):
             mouse_pos = pygame.mouse.get_pos()
             onclick_list = self.onclick(mouse_pos)
             if 'surrender' in onclick_list:
-                self.close()
+                self.page_man.del_page(self)
             elif onclick_list != []:
                 if onclick_list[0] in self.item_possible_list:
                     item_num = onclick_list[0]
@@ -229,7 +233,7 @@ class Multi_player(Window, BasePage):
                         self.chessboard1.add_new_num()
                         state = self.chessboard1.game_state_check()
                         if state:
-                            self.close()
+                            self.page_man.del_page(self)
                         ##TODO 还要写输赢的画面
                         ### 临时生成道具，到时候删
                         if self.chessboard1.get_step() % 3 == 0:
@@ -260,7 +264,7 @@ class Multi_player(Window, BasePage):
                         self.chessboard2.add_new_num()
                         state = self.chessboard2.game_state_check()
                         if state:
-                            self.close()
+                            self.page_man.del_page(self)
                         ##TODO 还要写输赢的画面
                         ### 临时生成道具，到时候删
                         if self.chessboard2.get_step() % 3 == 0:
@@ -291,7 +295,7 @@ def main(config):
         (config['window']['width'], config['window']['height'])
     )
     pygame.init()
-    multi_player_page = Multi_player(
+    multi_player_page = MultiPlayer(
         background_img=config['window']['multi_player']['background_img_uri']
     )
     # pygame.time.set_timer(pygame.USEREVENT, 5000)

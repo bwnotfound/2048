@@ -2,14 +2,17 @@ import toml
 
 import pygame
 
+from .ui.windows.page_manager import PageManager
 
 class GameManager:
     def __init__(self, config_path: str):
         self.config_path = config_path
         config = toml.load(config_path)
+        config['config_path'] = config_path
         self.config = config
         self.skip_rest_event = False
         self.close_flag = False
+        self.page_man = PageManager()
 
     @property
     def width(self):
@@ -21,6 +24,16 @@ class GameManager:
     
     def close(self):
         self.close_flag = True
+    
+    def new_menu(self):
+        from .ui.windows.menu import Menu
+        return Menu(
+            self.page_man,
+            self.config,
+            pygame.Rect(0, 0, self.width, self.height),
+            background_img=self.config['window']['menu']['background_img_uri'],
+            menu_font=self.config['window']['menu']['menu_font_uri'],
+        )
 
     def start(self):
         self.window_width = self.config['window']['width']
@@ -29,18 +42,13 @@ class GameManager:
             (self.window_width, self.window_height)
         )
         pygame.init()
-
-        from .ui.windows.menu import Menu
-
-        self.menu = Menu(
-            self,
-            pygame.Rect(0, 0, self.width, self.height),
-            background_img=self.config['window']['menu']['background_img_uri'],
-            menu_font=self.config['window']['menu']['menu_font_uri'],
-        )
+        
         clock = pygame.time.Clock()
         while True and not self.close_flag:
-            self.menu.show(window)
+            if len(self.page_man.get_page_list()) == 0:
+                self.page_man.add_page(self.new_menu())
+            for page in self.page_man.get_page_list():
+                page.show(window)
             pygame.display.flip()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -49,7 +57,9 @@ class GameManager:
                 if self.skip_rest_event:
                     self.skip_rest_event = False
                     break
-                self.menu.run(event)
+                for page in self.page_man.get_page_list():
+                    page.run(event)
             else:
-                self.menu.run(None)
+                for page in self.page_man.get_page_list():
+                    page.run(None)
             clock.tick(60)

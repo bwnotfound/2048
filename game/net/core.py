@@ -8,8 +8,8 @@ import struct
 
 
 class NetManager:
-    def __init__(self, is_server, host=None, port=11111):
-        self.is_server = is_server
+    def __init__(self, as_server, host=None, port=11111):
+        self.as_server = as_server
         self.host = host if host is not None else socket.gethostname()
         self.port = port
         self._listen_thread = None
@@ -23,7 +23,7 @@ class NetManager:
         '''
         if self._listen_thread is None or not self._listen_thread.is_alive():
             self._listen_thread = NetManagerThread(
-                self.is_server,
+                self.as_server,
                 self._stop_event,
                 connect_callback,
                 self,
@@ -39,11 +39,16 @@ class NetManager:
             self.client.close()
         if self._listen_thread is not None and self._listen_thread.is_alive():
             self._listen_thread.join()
-            
+
     def is_connected(self):
         if self.client is None:
             return False
         return True
+    
+    def _pack_data(self, data):
+        b_data = pickle.dumps(data)
+        b_length = struct.pack("i", len(b_data))
+        return b_length + b_data
 
     def send(self, data):
         r'''
@@ -57,9 +62,7 @@ class NetManager:
             logging.warning("连接未建立，无法发送数据")
             return 1
         try:
-            b_data = pickle.dumps(data)
-            b_length = struct.pack("i", len(b_data))
-            self.client.sendall(b_length + b_data)
+            self.client.sendall(self._pack_data(data))
             return 0
         except Exception as e:
             logging.warning("发送数据失败，异常类型：{}".format(type(e).__name__))
@@ -69,11 +72,51 @@ class NetManager:
             return None
         return self.data_queue.get()
 
+    def broadcast(self, data, port=10130):
+        r'''
+        data: 要广播的数据
+        return:
+            0: 广播成功
+            1: 连接未建立
+        '''
+        # 255.255.255.255表示向任何网段发送广播消息
+        address = ('255.255.255.255', port)
+        # 创建流式socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # 设置socket属性
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        data_bin = pickle.dumps(data)
+        # 发送广播消息
+        s.sendto(data_bin, address)
+        # 关闭socket
+        s.close()
+    
+    def recv_broadcast(self, port=10130):
+        r'''
+        return:
+            None: 未收到广播消息
+            data: 收到的广播消息
+        '''
+        # IP地址为空表示接收任何网段的广播消息
+        address = ('', port)
+        # 创建流式socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # 设置socket属性
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        # 绑定本地ip地址和端口
+        s.bind(address)
+        # 接收消息
+        data, address = s.recvfrom(1024)
+        # print(' [recv form %s:%d]:%s' % (address[0], address[1], data))
+        # 关闭socket
+        s.close()
+        return pickle.loads(data), address
+
 
 class NetManagerThread(Thread):
     def __init__(
         self,
-        is_server,
+        as_server,
         stop_event: Event,
         connect_callback,
         net_man: NetManager,
@@ -81,7 +124,7 @@ class NetManagerThread(Thread):
         port,
     ):
         super().__init__()
-        self.is_server = is_server
+        self.as_server = as_server
         self.stop_event = stop_event
         self.host = host
         self.port = port
@@ -90,7 +133,7 @@ class NetManagerThread(Thread):
 
     def run(self):
         try:
-            if self.is_server:
+            if self.as_server:
                 self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.server.bind((self.host, self.port))
                 self.server.listen(3)

@@ -7,20 +7,20 @@ from ..tools import Item_bag
 from .window import Window
 from ...core import chessboard, tool
 from .page import BasePage
-
+from .page_manager import PageManager
 
 class Sing_player(Window, BasePage):
     def __init__(
         self,
-        parent: BasePage,
+        page_man: PageManager,
         window_width,
         window_height,
         config,
         background_color=(155, 155, 155),
     ):
         super(BasePage, self).__init__()
+        self.page_man = page_man
         self.config = config
-        self.parent = parent
         self.window_width = window_width
         self.window_height = window_height
         self.background_img = load_image(
@@ -143,7 +143,7 @@ class Sing_player(Window, BasePage):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             onclick_list = self.onclick()
             if 'exit' in onclick_list:
-                self.close()
+                self.page_man.del_page(self)
             elif 'AI_clue' in onclick_list:
                 pass  ## @bwnotfound
             elif onclick_list != []:
@@ -167,7 +167,7 @@ class Sing_player(Window, BasePage):
 
                 state = self.my_chessboard.game_state_check()
                 if state:
-                    self.close()
+                    self.page_man.del_page(self)
                 ##TODO 还要写输赢的画面
                 ### 临时生成道具，到时候删
                 if self.my_chessboard.get_step() % 3 == 0:

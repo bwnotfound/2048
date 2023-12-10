@@ -14,6 +14,8 @@ class ComponentGroup:
 
     def show(self, window: pygame.Surface):
         for part in self.show_list:
+            if hasattr(part, "visible") and part.visible == False:
+                continue
             part.show(window)
 
     # update相比于show,在于会更新背景，所以我为什么没有删掉show。。
@@ -35,11 +37,15 @@ class ComponentGroup:
             else:
                 window.blit(background_img, (0, 0))
         for part in self.show_list:
+            if hasattr(part, "visible") and part.visible == False:
+                continue
             part.show(window)
 
     def onclick(self, mouse_pos):
         ret_list: list[abstract_show_comp] = []
         for part in self.onclick_list:
+            if hasattr(part, "visible") and part.visible == False:
+                continue
             if part.onclick(mouse_pos):
                 print(part.get_text())
                 ret_list.append(part)

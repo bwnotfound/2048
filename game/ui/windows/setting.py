@@ -3,19 +3,19 @@ import toml
 from .window import Window
 from ..tools import Text, Button, InputBox, ComponentGroup, Input_box_list
 from .page import BasePage
+from .page_manager import PageManager
 
 
 class Setting(Window, BasePage):
     def __init__(
         self,
-        parent: BasePage,
+        page_man: PageManager,
         config: toml,
-        config_path,
     ):
         super(BasePage, self).__init__()
-        self.parent = parent
+        self.page_man = page_man
         self.config = config
-        self.config_path = config_path
+        self.config_path = config['config_path']
         self.chessboard_size = self.config['window']['chessboard_size']
         self.goal = self.config['window']['sing_player']['goal']
         self.ip_address = self.config['window']['online_player']['ip_address']
@@ -108,10 +108,10 @@ class Setting(Window, BasePage):
             mouse_pos = pygame.mouse.get_pos()
             onclick_list, need_to_input = self.onclick(mouse_pos)
             if self.exit_button in onclick_list:
-                self.close()
+                self.page_man.del_page(self)
             elif self.save_button in onclick_list:
                 self.save(self.config_path)
-                self.close()
+                self.page_man.del_page(self)
             elif need_to_input:
                 self.input_box_list.onclick(mouse_pos)
         elif event.type == pygame.KEYDOWN:

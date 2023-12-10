@@ -22,6 +22,7 @@ class Text(abstract_show_comp):
         self.antialias = antialias
         self.background_color = background_color
         self.changed = False
+        self.visible = True
         self._draw()
 
     def _draw(self):

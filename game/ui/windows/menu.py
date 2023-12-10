@@ -7,19 +7,23 @@ import pygame
 from ..tools import Button, Text, ComponentGroup
 from .page import BasePage
 from ...main import GameManager
+from .online_player import OnlineChoice
+from .page_manager import PageManager
 
 
 class Menu(BasePage):
     def __init__(
         self,
-        game_man: GameManager,
+        page_man: PageManager,
+        config,
         rect: pygame.Rect,
         background_img=None,
         background_color=None,
         menu_font=None,
     ):
         super().__init__()
-        self.game_man = game_man
+        self.page_man = page_man
+        self.config = config
         r = random.randrange(75, 150)
         g = random.randrange(125, 200)
         b = random.randrange(100, 175)
@@ -97,15 +101,10 @@ class Menu(BasePage):
         else:
             self.background_img = None
         self.background_color = background_color
-        self.pages = []
 
     def run(self, event: pygame.event.Event):
         from .sing_player import Sing_player
-        from .multi_player import Multi_player
         from .setting import Setting
-
-        for page in self.pages:
-            page.run(event)
 
         if event is None:
             pass
@@ -113,39 +112,24 @@ class Menu(BasePage):
             mouse_pos = pygame.mouse.get_pos()
             onclick_list = self.onclick(mouse_pos)
             if 'sing_player' in onclick_list:
-                self.add_page(
+                self.page_man.add_page(
                     Sing_player(
-                        self,
-                        window_height=self.game_man.height,
-                        window_width=self.game_man.width,
-                        config=self.game_man.config,
+                        self.page_man,
+                        window_height=self.config['window']['height'],
+                        window_width=self.config['window']['width'],
+                        config=self.config,
                     )
                 )
+                self.page_man.del_page(self)
             elif 'multiplayer' in onclick_list:
-                self.add_page(Multi_player(self, self.game_man.config))
+                self.page_man.add_page(OnlineChoice(self.page_man, self.config))
+                self.page_man.del_page(self)
             elif 'setting' in onclick_list:
-                self.add_page(
-                    Setting(self, self.game_man.config, self.game_man.config_path)
-                )
+                self.page_man.add_page(Setting(self.page_man, self.config))
+                self.page_man.del_page(self)
 
     def close(self):
-        raise NotImplementedError
-
-    def get_page(self, page):
-        for p in self.pages:
-            if page is p:
-                return page
-        return None
-
-    def add_page(self, page):
-        if self.get_page(page) is not None:
-            return
-        self.pages.append(page)
-
-    def remove_page(self, page):
-        page = self.get_page(page)
-        if page is not None:
-            self.pages.remove(page)
+        self.page_man.del_page(self)
 
     def show(self, window: pygame.Surface):
         if self.visible and len(self.pages) == 0:
@@ -157,6 +141,8 @@ class Menu(BasePage):
 
     ## 返回被点击的所有组件对应的字符串的列表
     def onclick(self, mouse_pos):
+        if len(self.pages) != 0:
+            return []
         return [
             part.get_text() for part in self.show_list.onclick(mouse_pos)
         ]  # TODO: 没有检查是否有get_text方法。建议做成基类

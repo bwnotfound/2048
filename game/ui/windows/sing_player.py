@@ -152,6 +152,8 @@ class Sing_player(Window, BasePage):
                     self.my_item_bag.use_tool(item_num)
                     self.my_chessboard.score = self.my_chessboard.calc_score()
                     self.item_bag.update(self.my_item_bag.get_item_bag())
+                    self.chess.board = self.my_chessboard.get_board()
+                    self.chess.pre_board = self.my_chessboard.get_board()
         elif event.type == pygame.KEYDOWN:
             keydown_str = self.keydown(event)
             if keydown_str in ['up', 'down', 'right', 'left']:

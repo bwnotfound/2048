@@ -36,9 +36,12 @@ class ChessBoard:
             elif s == 5:
                 num = random.choices([2, 4, 8, 16], weights=[0.42, 0.38, 0.18, 0.02])[0]
         if self.newstate == 1:
-            indices = np.where(self.board == 0)
-            index = random.randint(0, len(indices[0]) - 1)
-            self.board[indices[0][index], indices[1][index]] = num
+            try:
+                indices = np.where(self.board == 0)
+                index = random.randint(0, len(indices[0]) - 1)
+                self.board[indices[0][index], indices[1][index]] = num
+            except:
+                pass
         else:
             print("本回合不生成新数字")
             self.newstate = 1
@@ -103,8 +106,10 @@ class ChessBoard:
             return 0
 
         # 如果没有空格，检查是否还能进行消除
-        if np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(
-            self.board[:, :-1] == self.board[:, 1:] or self.newstate == 0
+        if (
+            np.any(self.board[:-1, :] == self.board[1:, :])
+            or np.any(self.board[:, :-1] == self.board[:, 1:])
+            or (self.newstate == 0)
         ):
             return 0
         return 2

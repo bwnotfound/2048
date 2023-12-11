@@ -8,6 +8,9 @@ from .window import Window
 from ...core import chessboard, tool
 from .page import BasePage
 from .page_manager import PageManager
+from .alert_window import AlertWindow
+
+from ..tools.common import center2rect
 
 
 class Sing_player(Window, BasePage):
@@ -77,6 +80,8 @@ class Sing_player(Window, BasePage):
             start_pos=(self.window_width * 4 // 7, self.window_height * 6 // 16),
         )
 
+        self.info_window = None
+
         self.show_list = ComponentGroup(
             [
                 self.task_text,
@@ -134,6 +139,11 @@ class Sing_player(Window, BasePage):
         if event.key in [pygame.K_d, pygame.K_RIGHT]:
             return 'right'
 
+    def click_exit(self):
+        self.show_list.del_compo(self.info_window)
+        self.info_window = None
+        self.page_man.del_page(self)
+
     def run(self, event: pygame.event.Event):
         self.floating_on()
         if event is None:
@@ -155,9 +165,35 @@ class Sing_player(Window, BasePage):
                     self.chess.board = self.my_chessboard.get_board()
                     self.chess.pre_board = self.my_chessboard.get_board()
         elif event.type == pygame.KEYDOWN:
+            if self.info_window is not None:
+                return
             keydown_str = self.keydown(event)
             if keydown_str in ['up', 'down', 'right', 'left']:
                 if not self.chess.is_moving:
+                    state = self.my_chessboard.game_state_check()
+                    if state == 1:
+                        self.info_window = AlertWindow(
+                            "You Win!",
+                            center2rect(
+                                (self.window_width // 2, self.window_height // 2),
+                                (self.window_width // 2, self.window_height // 2),
+                            ),
+                            self.click_exit,
+                        )
+                        self.show_list.add_compo(self.info_window)
+                        return
+                    elif state == 2:
+                        self.info_window = AlertWindow(
+                            "You Lose!",
+                            center2rect(
+                                (self.window_width // 2, self.window_height // 2),
+                                (self.window_width // 2, self.window_height // 2),
+                            ),
+                            self.click_exit,
+                        )
+                        self.show_list.add_compo(self.info_window)
+                        return
+                        
                     if keydown_str == 'up':
                         self.my_chessboard.board, _, _ = self.my_chessboard.up()
                     if keydown_str == 'down':
@@ -166,12 +202,8 @@ class Sing_player(Window, BasePage):
                         self.my_chessboard.board, _, _ = self.my_chessboard.right()
                     if keydown_str == 'left':
                         self.my_chessboard.board, _, _ = self.my_chessboard.left()
+                        
                     self.my_chessboard.add_new_num()
-
-                    state = self.my_chessboard.game_state_check()
-                    if state:
-                        self.page_man.del_page(self)
-                    ##TODO 还要写输赢的画面
                     ### 临时生成道具，到时候删
                     if self.my_chessboard.get_step() % 3 == 0:
                         self.my_item_bag.add_tool(random.randint(1, 12))

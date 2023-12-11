@@ -22,13 +22,13 @@ class Item_bag(abstract_onclick_comp):
             3: 'game\\ui\\assets\\images\\copy_128.png',
             4: 'game\\ui\\assets\\images\\frozen_time.png',
             5: 'game\\ui\\assets\\images\\bigger_num.png',
-            6: 'game\\ui\\assets\\images\\bigger_num.png',  # 我不到啊
-            7: 'game\\ui\\assets\\images\\bigger_num.png',  # 我不到啊
+            6: 'game\\ui\\assets\\images\\symmetry.png', 
+            7: 'game\\ui\\assets\\images\\get_more_score.png', 
             8: 'game\\ui\\assets\\images\\double.png',
             9: 'game\\ui\\assets\\images\\smaller_num.png',
             10: 'game\\ui\\assets\\images\\merge_update.png',
-            11: 'game\\ui\\assets\\images\\remove.png',
-            12: 'game\\ui\\assets\\images\\remove.png',  # 我还是不到啊
+            11: 'game\\ui\\assets\\images\\random_remove.png',
+            12: 'game\\ui\\assets\\images\\max_remove.png',  # 我还是不到啊
         }
         self.item_to_tip = {
             1: 'shuffle',

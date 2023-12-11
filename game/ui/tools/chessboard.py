@@ -91,19 +91,6 @@ class Chessboard:
         self.last_sec = 0
         self.move_direction = None
 
-    def trim(self, x):
-        if x < 0:
-            return 0
-        if x >= self.row_num:
-            return self.row_num - 1
-        return x
-
-    # @property
-    # def time_rate(self):
-    #     rate = (perf_counter() - self.last_sec) / self.moving_sec
-    #     rate = max(min(rate, 1), 0)
-    #     return rate
-
     def time_rate(self, after_ratio=0.0):
         last_sec = self.last_sec + self.moving_sec * after_ratio
         rate = (perf_counter() - last_sec) / self.moving_sec

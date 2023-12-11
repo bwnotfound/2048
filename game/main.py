@@ -1,3 +1,4 @@
+import os
 import toml
 from time import perf_counter, sleep
 import pygame
@@ -25,6 +26,8 @@ class GameManager:
     def __init__(self, config_path: str):
         self.config_path = config_path
         config = toml.load(config_path)
+        root_dir = os.getcwd()
+        config['root_dir'] = root_dir
         config['config_path'] = config_path
         self.config = config
         self.skip_rest_event = False

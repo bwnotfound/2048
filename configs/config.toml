@@ -4,7 +4,7 @@ root_dir = "./"
 width = 1280
 height = 720
 title = "2048 Game"
-chessboard_size = 5
+chessboard_size = 4
 
 [window.menu]
 background_img_uri = "game/ui/assets/images/menu_background.jpg"
@@ -14,7 +14,7 @@ menu_font_uri = "game/ui/assets/fonts/Milky Mania.ttf"
 background_img_uri = "game/ui/assets/images/sing_plyaer_background.jpg"
 task_font = "game/ui/assets/fonts/zhbtt.ttf"
 goal = 2048
-chessboard_size = 5
+chessboard_size = 4
 
 [window.multi_player]
 background_img_uri = "game/ui/assets/images/multi_background.jpg"

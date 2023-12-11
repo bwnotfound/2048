@@ -47,29 +47,12 @@ class OnlineChoice(Window, BasePage):
                 self.exit_button,
             ]
         )
-        self.pages = []
 
     def show(self, window: pygame.Surface):
-        if self.visible and len(self.pages) == 0:
-            self.component_group.update(window, background_img=self.background_img)
-        for page in self.pages:
-            page.show(window)
+        self.component_group.update(window, background_img=self.background_img)
 
     def onclick(self, mouse_pos):
         return [part.get_text() for part in self.component_group.onclick(mouse_pos)]
-
-    def get_page(self, page):
-        if page in self.pages:
-            return page
-        return None
-
-    def add_page(self, page):
-        if self.get_page(page) is None:
-            self.pages.append(page)
-
-    def remove_page(self, page):
-        if page in self.pages:
-            self.pages.remove(page)
 
     def run(self, event: pygame.event.Event):
         if event is None:
@@ -88,11 +71,7 @@ class OnlineChoice(Window, BasePage):
                 )
                 self.page_man.del_page(self)
             elif 'exit' in onclick_list:
-                while len(self.pages) > 0:
-                    self.pages.pop().close()
-                self.close()
-        for page in self.pages:
-            page.run(event)
+                self.page_man.del_page(self)
 
 
 class OnlineWaitWindow(Window, BasePage):

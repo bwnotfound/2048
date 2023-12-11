@@ -9,6 +9,7 @@ from ...core import chessboard, tool
 from .page import BasePage
 from .page_manager import PageManager
 
+
 class Sing_player(Window, BasePage):
     def __init__(
         self,
@@ -27,9 +28,21 @@ class Sing_player(Window, BasePage):
             config['window']['sing_player']['background_img_uri'],
             (window_width, window_height),
         )
+        size = config['window']['chessboard_size']
         self.background_color = background_color
-        self.score = 0
-        self.step = 0
+        self.chess = Chessboard(
+            (window_width * 8 // 27, window_height * 19 // 32),
+            (window_height * 3 // 4, window_height * 3 // 4),
+            size,
+            background_color=(181, 170, 156),
+        )
+        self.my_chessboard = chessboard.ChessBoard(
+            self.config['window']['chessboard_size'],
+        )
+        self.my_chessboard.score = self.my_chessboard.calc_score()
+        self.my_item_bag = tool.ToolsBag(12)
+        self.item_possible_list = [i for i in range(1, 13)]
+
         self.task_str = 'task'
         self.task_text = Text(
             (window_width // 4, window_height // 8),
@@ -47,14 +60,7 @@ class Sing_player(Window, BasePage):
             self.step_str,
             font_color=(150, 200, 165),
         )
-        size = config['window']['chessboard_size']
-        self.data = [[0 for _ in range(size)] for _ in range(size)]
-        self.chess = Chessboard(
-            (window_width * 8 // 27, window_height * 19 // 32),
-            (window_height * 3 // 4, window_height * 3 // 4),
-            size,
-            background_color=(181, 170, 156),
-        )
+
         self.ai_button = Button(
             (window_width * 14 // 16, window_height * 14 // 16),
             'AI_clue',
@@ -66,7 +72,6 @@ class Sing_player(Window, BasePage):
             size=(200, 50),
             background_color=(255, 255, 255, 100),
         )
-        self.item_bag_num = np.zeros(12, int)
         self.item_bag = Item_bag(
             (self.window_width * 9 // 24, self.window_height * 2 // 5),
             start_pos=(self.window_width * 4 // 7, self.window_height * 6 // 16),
@@ -84,12 +89,13 @@ class Sing_player(Window, BasePage):
             ]
         )
 
-        self.my_chessboard = chessboard.ChessBoard(
-            self.config['window']['chessboard_size'],
-        )
-        self.my_chessboard.score = self.my_chessboard.calc_score()
-        self.my_item_bag = tool.ToolsBag(12)
-        self.item_possible_list = [i for i in range(1, 13)]
+    @property
+    def score(self):
+        return self.my_chessboard.get_total_score()
+
+    @property
+    def step(self):
+        return self.my_chessboard.get_step()
 
     @property
     def score_str(self):
@@ -98,9 +104,8 @@ class Sing_player(Window, BasePage):
     @property
     def step_str(self):
         return 'step: ' + str(self.step)
-    
+
     def show(self, window: pygame.Surface):
-        self.chess.update(self.data)
         self.step_text.set_text(self.step_str)
         self.score_text.set_text(self.score_str)
         self.show_list.update(
@@ -108,19 +113,12 @@ class Sing_player(Window, BasePage):
             background_img=self.background_img,
             background_color=self.background_color,
         )
-        window.blit(self.item_bag.get_surface(), self.item_bag.start_pos)
+        self.item_bag.show(window)
 
     def onclick(self):
         mouse_pos = pygame.mouse.get_pos()
         onclick_list = self.show_list.onclick(mouse_pos)
         return [part.get_text() for part in onclick_list]
-
-    def update(self, data, score, step, item_bag: np.ndarray):
-        self.data = data
-        self.score = score
-        self.step = step
-        self.item_bag_num = item_bag
-        self.item_bag.update(self.item_bag_num)
 
     def floating_on(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -144,6 +142,7 @@ class Sing_player(Window, BasePage):
             onclick_list = self.onclick()
             if 'exit' in onclick_list:
                 self.page_man.del_page(self)
+                return
             elif 'AI_clue' in onclick_list:
                 pass  ## @bwnotfound
             elif onclick_list != []:
@@ -152,34 +151,31 @@ class Sing_player(Window, BasePage):
                     self.my_chessboard.use_tools(item_num)
                     self.my_item_bag.use_tool(item_num)
                     self.my_chessboard.score = self.my_chessboard.calc_score()
+                    self.item_bag.update(self.my_item_bag.get_item_bag())
         elif event.type == pygame.KEYDOWN:
             keydown_str = self.keydown(event)
             if keydown_str in ['up', 'down', 'right', 'left']:
-                if keydown_str == 'up':
-                    self.my_chessboard.board, _, _ = self.my_chessboard.up()
-                if keydown_str == 'down':
-                    self.my_chessboard.board, _, _ = self.my_chessboard.down()
-                if keydown_str == 'right':
-                    self.my_chessboard.board, _, _ = self.my_chessboard.right()
-                if keydown_str == 'left':
-                    self.my_chessboard.board, _, _ = self.my_chessboard.left()
-                self.my_chessboard.add_new_num()
+                if not self.chess.is_moving:
+                    if keydown_str == 'up':
+                        self.my_chessboard.board, _, _ = self.my_chessboard.up()
+                    if keydown_str == 'down':
+                        self.my_chessboard.board, _, _ = self.my_chessboard.down()
+                    if keydown_str == 'right':
+                        self.my_chessboard.board, _, _ = self.my_chessboard.right()
+                    if keydown_str == 'left':
+                        self.my_chessboard.board, _, _ = self.my_chessboard.left()
+                    self.my_chessboard.add_new_num()
 
-                state = self.my_chessboard.game_state_check()
-                if state:
-                    self.page_man.del_page(self)
-                ##TODO 还要写输赢的画面
-                ### 临时生成道具，到时候删
-                if self.my_chessboard.get_step() % 3 == 0:
-                    self.my_item_bag.add_tool(random.randint(1, 12))
-                ###
-
-        self.update(
-            data=self.my_chessboard.get_board(),
-            score=self.my_chessboard.score * 100000 + self.my_chessboard.prizescore,
-            step=self.my_chessboard.get_step(),
-            item_bag=self.my_item_bag.get_item_bag(),
-        )
+                    state = self.my_chessboard.game_state_check()
+                    if state:
+                        self.page_man.del_page(self)
+                    ##TODO 还要写输赢的画面
+                    ### 临时生成道具，到时候删
+                    if self.my_chessboard.get_step() % 3 == 0:
+                        self.my_item_bag.add_tool(random.randint(1, 12))
+                        self.item_bag.update(self.my_item_bag.get_item_bag())
+                    ###
+                    self.chess.update(self.my_chessboard.get_board(), keydown_str)
 
 
 def main(config):

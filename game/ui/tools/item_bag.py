@@ -9,9 +9,14 @@ from .floating_tip import Floating_tip
 class Item_bag(abstract_onclick_comp):
     ## 传入start_pos是因为item_bag返回的是局部的surface而不是在整个window上画，此时在onclick时需要知道是否点击在范围中了
     def __init__(self, size, item_bag=np.zeros(12, int), start_pos=(0, 0)):
-        self.start_pos = start_pos
-        self.width = size[0]
-        self.height = size[1]
+        self.board_size = 200
+        self.start_pos = (
+            start_pos[0] + self.board_size,
+            start_pos[1] + self.board_size,
+        )
+        self.rect = pygame.Rect(self.board_size, self.board_size, size[0], size[1])
+        self.width = self.rect.w
+        self.height = self.rect.h
         self.item_bag = item_bag
         self.item_to_png = {
             1: 'game\\ui\\assets\\images\\random.png',
@@ -41,7 +46,7 @@ class Item_bag(abstract_onclick_comp):
             11: 'eliminate one blanck',
             12: 'eliminate the bigest blanck',  # 我还是不到啊
         }
-        self.window = pygame.Surface((self.width, self.height)).convert_alpha()
+        self.window = pygame.Surface((self.width + 2 * self.board_size, self.height + 2 * self.board_size)).convert_alpha()
         self.window.fill((0, 0, 0, 0))
 
         self.floating_time = 0
@@ -61,21 +66,28 @@ class Item_bag(abstract_onclick_comp):
     def get_text(self):
         return self.last_onclick
 
-    def update(self, item_bag):
-        self.item_bag = item_bag
+    def draw(self):
         item_pos = 0
         png_width = self.width // 4
         png_height = self.height // 3
         self.window.fill((0, 0, 0, 0))
-        for item in item_bag:
+        for item in self.item_bag:
             if item in self.item_to_png.keys():
                 item_png = self.image_cache_dict[item]  # 分为4*3共12个道具
                 self.window.blit(
                     item_png, (png_width * (item_pos % 4), png_height * (item_pos // 4))
                 )
                 item_pos += 1
-        if self.floating_time >= 120:
+        if self.floating_time >= 30:
             self.tip.show(self.window)
+
+    def show(self, window):
+        self.draw()
+        window.blit(self.get_surface(), self.start_pos)
+
+    def update(self, item_bag):
+        self.item_bag = item_bag
+        self.draw()
 
     # 如果不在范围中返回false,否则返回对应的道具编号或-1
     def onclick(self, mouse_pos):
@@ -94,7 +106,7 @@ class Item_bag(abstract_onclick_comp):
     def floating_on(self, mouse_pos):
         mouse_pos = (mouse_pos[0] - self.start_pos[0], mouse_pos[1] - self.start_pos[1])
         if 0 < mouse_pos[0] < self.width and 0 < mouse_pos[1] < self.height:
-            if self.floating_time == 120:
+            if self.floating_time == 30:
                 item_num = (mouse_pos[0] * 4 // self.width) + 4 * (
                     mouse_pos[1] * 3 // self.height
                 )
@@ -108,22 +120,24 @@ class Item_bag(abstract_onclick_comp):
                         font_color=(100, 100, 100),
                         font_size=20,
                     )
+                    self.draw()
             if self.last_mouse_pos == mouse_pos:
                 self.floating_time += 1
                 print(self.floating_time)
-                if self.floating_time >= 120:
+                if self.floating_time >= 30:
                     return True
             else:
                 self.floating_time = 0
+                self.draw()
             self.last_mouse_pos = mouse_pos
             return False
 
     def get_surface(self):
         return self.window
-    
+
     def pack_data(self):
         return self.item_bag.tolist()
-        
+
     def check_data(self, data):
         if not (isinstance(data, list) and len(data) == 12):
             return False

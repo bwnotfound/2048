@@ -13,6 +13,7 @@ class Text(abstract_show_comp):
         font=None,
         antialias=True,
         background_color=(0, 0, 0, 0),
+        font_alpha=1.0,
     ):
         self.center = center
         self.text = text
@@ -23,6 +24,7 @@ class Text(abstract_show_comp):
         self.background_color = background_color
         self.changed = False
         self.visible = True
+        self.font_alpha = font_alpha
         self._draw()
 
     def _draw(self):
@@ -35,6 +37,7 @@ class Text(abstract_show_comp):
         self.image = pygame.Surface(self.size).convert_alpha()
         self.image.fill(self.background_color)
         self.font_image = self.font.render(self.text, self.antialias, self.font_color)
+        self.font_image.set_alpha(self.font_alpha * 255)
         self.image.blit(
             self.font_image,
             (0, 0),
@@ -54,3 +57,10 @@ class Text(abstract_show_comp):
             return
         self.changed = True
         self.text = text
+    
+    def set_font_alpha(self, alpha):
+        self.font_alpha = alpha
+        self.changed = True
+        
+    def get_font_alpha(self):
+        return self.font_alpha

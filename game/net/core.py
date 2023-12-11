@@ -113,8 +113,9 @@ class NetManager:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # 绑定本地ip地址和端口
         s.bind(address)
-        s.setblocking(block)
-        s.settimeout(0.05)
+        if not block:
+            s.setblocking(block)
+            s.settimeout(0.15)
         # 接收消息
         try:
             data, _ = s.recvfrom(1024)

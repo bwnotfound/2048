@@ -105,6 +105,7 @@ class Menu(BasePage):
     def run(self, event: pygame.event.Event):
         from .sing_player import Sing_player
         from .setting import Setting
+        from .classic_mode import ClassicMode
 
         if event is None:
             pass
@@ -123,6 +124,16 @@ class Menu(BasePage):
                 self.page_man.del_page(self)
             elif 'multiplayer' in onclick_list:
                 self.page_man.add_page(OnlineChoice(self.page_man, self.config))
+                self.page_man.del_page(self)
+            elif 'classic' in onclick_list:
+                self.page_man.add_page(
+                    ClassicMode(
+                        self.page_man,
+                        self.config['window']['width'],
+                        self.config['window']['height'],
+                        self.config,
+                    )
+                )
                 self.page_man.del_page(self)
             elif 'setting' in onclick_list:
                 self.page_man.add_page(Setting(self.page_man, self.config))

@@ -37,6 +37,10 @@ class OnlineChoice(Window, BasePage):
         self.client_button = Button(
             (self.window_width // 2, self.window_height * 7 // 14), 'as_client'
         )
+        self.key_button = Button(
+            (self.window_width // 2, self.window_height * 9 // 14), 'single_keyboard_play'
+        )
+        
         self.exit_button = Button(
             (self.window_width // 2, self.window_height * 13 // 14), 'exit'
         )
@@ -44,6 +48,7 @@ class OnlineChoice(Window, BasePage):
             [
                 self.server_button,
                 self.client_button,
+                self.key_button,
                 self.exit_button,
             ]
         )
@@ -68,6 +73,11 @@ class OnlineChoice(Window, BasePage):
             elif 'as_client' in onclick_list:
                 self.page_man.add_page(
                     OnlineWaitWindow(self.page_man, False, self.config)
+                )
+                self.page_man.del_page(self)
+            elif 'single_keyboard_play' in onclick_list:
+                self.page_man.add_page(
+                    MultiPlayer(self.page_man, False, None, self.config, True)
                 )
                 self.page_man.del_page(self)
             elif 'exit' in onclick_list:
@@ -158,6 +168,7 @@ class OnlineWaitWindow(Window, BasePage):
                     self.as_server,
                     self.net_manager,
                     self.config,
+                    False,
                 )
             )
             self.page_man.del_page(self)
@@ -178,6 +189,7 @@ class OnlineWaitWindow(Window, BasePage):
                     self.as_server,
                     self.client_net_manager,
                     self.config,
+                    False,
                 )
             )
             self.page_man.del_page(self)

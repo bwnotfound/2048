@@ -113,12 +113,12 @@ class Sing_player(Window, BasePage):
     def show(self, window: pygame.Surface):
         self.step_text.set_text(self.step_str)
         self.score_text.set_text(self.score_str)
+        self.item_bag.show(window)
         self.show_list.update(
             window,
             background_img=self.background_img,
             background_color=self.background_color,
         )
-        self.item_bag.show(window)
 
     def onclick(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -162,8 +162,9 @@ class Sing_player(Window, BasePage):
                     self.my_item_bag.use_tool(item_num)
                     self.my_chessboard.score = self.my_chessboard.calc_score()
                     self.item_bag.update(self.my_item_bag.get_item_bag())
-                    self.chess.board = self.my_chessboard.get_board()
-                    self.chess.pre_board = self.my_chessboard.get_board()
+                    self.chess.pre_board = (
+                        self.chess.board
+                    ) = self.my_chessboard.get_board()
         elif event.type == pygame.KEYDOWN:
             if self.info_window is not None:
                 return
@@ -193,7 +194,7 @@ class Sing_player(Window, BasePage):
                         )
                         self.show_list.add_compo(self.info_window)
                         return
-                        
+
                     if keydown_str == 'up':
                         self.my_chessboard.board, _, _ = self.my_chessboard.up()
                     if keydown_str == 'down':
@@ -202,7 +203,7 @@ class Sing_player(Window, BasePage):
                         self.my_chessboard.board, _, _ = self.my_chessboard.right()
                     if keydown_str == 'left':
                         self.my_chessboard.board, _, _ = self.my_chessboard.left()
-                        
+
                     self.my_chessboard.add_new_num()
                     ### 临时生成道具，到时候删
                     if self.my_chessboard.get_step() % 3 == 0:

@@ -87,7 +87,7 @@ class Chessboard:
         self.pre_board = [[0 for _ in range(row_num)] for _ in range(row_num)]
 
         self.is_moving = False
-        self.moving_sec = 0.2
+        self.moving_sec = 0.17
         self.last_sec = 0
         self.move_direction = None
 
